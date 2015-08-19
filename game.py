@@ -46,6 +46,12 @@ class Cursor(pygame.sprite.Sprite):
 	def __init__(self):
 		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
 		self.image, self.rect = load_image('cursor.png', -1)
+		self.image.convert_alpha()
+		diameter = 16
+		self.image = pygame.transform.smoothscale(self.image, (diameter, diameter))
+		self.image.convert()
+		self.rect.width = diameter
+		self.rect.height = diameter
 		self.punching = 0
 
 	def update(self):
@@ -57,8 +63,11 @@ class Target(pygame.sprite.Sprite):
 	def __init__(self):
 		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
 		self.image, self.rect = load_image('target.png', -1)
-		# todo: resize target
-		self.punching = 0
+		diameter = 16
+		self.image = pygame.transform.smoothscale(self.image, (diameter, diameter))
+		self.image.convert()
+		self.rect.width = diameter
+		self.rect.height = diameter
 
 	def update(self):
 		# hit test done in Cursor
@@ -68,7 +77,11 @@ class Asteroid(pygame.sprite.Sprite):
 	def __init__(self):
 		pygame.sprite.Sprite.__init__(self) #call Sprite intializer
 		self.image, self.rect = load_image('asteroid.png', -1)
-		# todo: resize asteroid
+		diameter = 100
+		self.image = pygame.transform.smoothscale(self.image, (diameter, diameter))
+		self.image.convert()
+		self.rect.width = diameter
+		self.rect.height = diameter
 		screen = pygame.display.get_surface()
 		self.area = screen.get_rect()
 		self.rect.topleft = 10, 10
