@@ -3,10 +3,22 @@
 Copyright (c) 2015 Nick Winters
 '''
 
+# to make python3 porting easier:
+# see http://lucumr.pocoo.org/2011/1/22/forwards-compatible-python/
+from __future__ import absolute_import, division
+'''
+>>> 6 / 7
+1
+>>> from __future__ import division
+>>> 6 / 7
+1.2857142857142858
+'''
+
 
 #Import Modules
 import os, pygame
 from pygame.locals import *
+import random
 
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
@@ -47,11 +59,11 @@ class Cursor(pygame.sprite.Sprite):
 		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
 		self.image, self.rect = load_image('cursor.png', -1)
 		self.image.convert_alpha()
-		diameter = 16
-		self.image = pygame.transform.smoothscale(self.image, (diameter, diameter))
+		self.diameter = 50
+		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
 		self.image.convert()
-		self.rect.width = diameter
-		self.rect.height = diameter
+		self.rect.width = self.diameter
+		self.rect.height = self.diameter
 		self.punching = 0
 
 	def update(self):
@@ -63,11 +75,11 @@ class Target(pygame.sprite.Sprite):
 	def __init__(self):
 		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
 		self.image, self.rect = load_image('target.png', -1)
-		diameter = 16
-		self.image = pygame.transform.smoothscale(self.image, (diameter, diameter))
+		self.diameter = 50
+		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
 		self.image.convert()
-		self.rect.width = diameter
-		self.rect.height = diameter
+		self.rect.width = self.diameter
+		self.rect.height = self.diameter
 
 	def update(self):
 		# hit test done in Cursor
@@ -77,11 +89,11 @@ class Asteroid(pygame.sprite.Sprite):
 	def __init__(self):
 		pygame.sprite.Sprite.__init__(self) #call Sprite intializer
 		self.image, self.rect = load_image('asteroid.png', -1)
-		diameter = 100
-		self.image = pygame.transform.smoothscale(self.image, (diameter, diameter))
+		self.diameter = 100
+		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
 		self.image.convert()
-		self.rect.width = diameter
-		self.rect.height = diameter
+		self.rect.width = self.diameter
+		self.rect.height = self.diameter
 		screen = pygame.display.get_surface()
 		self.area = screen.get_rect()
 		self.rect.topleft = 10, 10
@@ -97,6 +109,15 @@ class Asteroid(pygame.sprite.Sprite):
 		newpos = self.rect.move((self.dx, self.dy))
 		self.rect = newpos
 
+def circularspritesoverlap(a, b):
+	x1 = a.rect.centerx
+	y1 = a.rect.centery
+	d1 = a.diameter
+	x2 = b.rect.centerx
+	y2 = b.rect.centery
+	d2 = b.diameter
+	# x1, y1, d1, x2, y2, d2
+	return ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1)) < ((d1 * d1 + d2 * d2) / 2.)
 
 def main():
 	pygame.init()
@@ -124,8 +145,10 @@ def main():
 	#punch_sound = load_sound('punch.wav')
 	cursor = Cursor()
 	target = Target()
-	asteroid0 = Asteroid()
-	allsprites = pygame.sprite.RenderPlain((asteroid0, target, cursor))
+	asteroids = [Asteroid()]
+	allsprites = pygame.sprite.RenderPlain(asteroids + [target, cursor])
+	rnd = random.Random(3487437)
+	screenarea = screen.get_rect()
 
 	#Main Loop
 	while 1:
@@ -149,6 +172,19 @@ def main():
 				#fist.unpunch()
 
 		allsprites.update()
+		
+		# additional game logic:
+		if circularspritesoverlap(cursor, target):
+			# hit. 
+			# todo: increment counter of targets hit
+			print 'hit!'
+			# reposition target
+			target.rect.left = rnd.randint(0, screenarea.width - target.diameter)
+			target.rect.top = rnd.randint(0, screenarea.height - target.diameter)
+		for asteroid in asteroids:
+			if circularspritesoverlap(cursor, asteroid):
+				print 'dead', cursor.rect.left, cursor.rect.top
+				# todo: restart level or somesuch			
 
 		#Draw Everything
 		screen.blit(background, (0, 0))
