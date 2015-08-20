@@ -109,6 +109,25 @@ class Asteroid(pygame.sprite.Sprite):
 		newpos = self.rect.move((self.dx, self.dy))
 		self.rect = newpos
 
+class QuitGame(Exception):
+	def __init__(self, value):
+		self.value = value
+	def __str__(self):
+		return repr(self.value)
+
+class GameScreen():
+	def __init__(self, screen, screenstack):
+		self.screen = screen
+		self.screenstack = screenstack
+		self.opaque = True
+		
+	def update(self):
+		pass
+	
+	def draw(self):
+		# TODO: fill entire screen with a unique color to indicate that draw() is being called here
+		pass
+
 def circularspritesoverlap(a, b):
 	x1 = a.rect.centerx
 	y1 = a.rect.centery
@@ -119,76 +138,93 @@ def circularspritesoverlap(a, b):
 	# x1, y1, d1, x2, y2, d2
 	return ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1)) < ((d1 * d1 + d2 * d2) / 2.)
 
+class AsteroidImpactGameplayScreen(GameScreen):
+	def __init__(self, screen, gamescreenstack):
+		GameScreen.__init__(self, screen, gamescreenstack)
+		self.screen = screen
+		self.screenarea = self.screen.get_rect()
+		self.background = pygame.Surface(screen.get_size())
+		self.background = self.background.convert()
+		self.background.fill((250, 250, 250))
+
+		if pygame.font:
+			self.font = pygame.font.Font(None, 36)
+			text = self.font.render("Test", 1, (10, 10, 10))
+			textpos = text.get_rect(centerx=self.background.get_width()/2)
+			self.background.blit(text, textpos)
+
+		#Display The Background
+		self.screen.blit(self.background, (0, 0))
+		
+		self.cursor = Cursor()
+		self.target = Target()
+		self.asteroids = [Asteroid()]
+		self.allsprites = pygame.sprite.RenderPlain(self.asteroids + [self.target, self.cursor])
+		self.rnd = random.Random(3487437)
+
+	def update(self):
+		for event in pygame.event.get():
+			if event.type == KEYDOWN and event.key == K_ESCAPE:
+				raise QuitGame('ESC Pressed')
+			elif event.type == MOUSEBUTTONDOWN:
+				pass
+			elif event.type is MOUSEBUTTONUP:
+				pass
+
+		self.allsprites.update()
+		
+		# additional game logic:
+		if circularspritesoverlap(self.cursor, self.target):
+			# hit. 
+			# todo: increment counter of targets hit
+			print 'hit!'
+			# reposition target
+			self.target.rect.left = self.rnd.randint(0, self.screenarea.width - self.target.diameter)
+			self.target.rect.top = self.rnd.randint(0, self.screenarea.height - self.target.diameter)
+		for asteroid in self.asteroids:
+			if circularspritesoverlap(self.cursor, asteroid):
+				print 'dead', self.cursor.rect.left, self.cursor.rect.top
+				# todo: restart level or somesuch			
+
+	def draw(self):
+		self.screen.blit(self.background, (0, 0))
+		self.allsprites.draw(self.screen)
+	
+
+
+
 def main():
 	pygame.init()
 	screen = pygame.display.set_mode((640, 480))
 	pygame.display.set_caption('Asteroid Impact')
 	pygame.mouse.set_visible(0)
-
-	background = pygame.Surface(screen.get_size())
-	background = background.convert()
-	background.fill((250, 250, 250))
-
-	if pygame.font:
-		font = pygame.font.Font(None, 36)
-		text = font.render("Test", 1, (10, 10, 10))
-		textpos = text.get_rect(centerx=background.get_width()/2)
-		background.blit(text, textpos)
-
-	#Display The Background
-	screen.blit(background, (0, 0))
+	
+	gamescreenstack = []
+	gameplay = AsteroidImpactGameplayScreen(screen, gamescreenstack)
+	gamescreenstack.append(gameplay)
+	
 	pygame.display.flip()
 
 	#Prepare Game Objects
 	clock = pygame.time.Clock()
-	#whiff_sound = load_sound('whiff.wav')
-	#punch_sound = load_sound('punch.wav')
-	cursor = Cursor()
-	target = Target()
-	asteroids = [Asteroid()]
-	allsprites = pygame.sprite.RenderPlain(asteroids + [target, cursor])
-	rnd = random.Random(3487437)
-	screenarea = screen.get_rect()
 
 	#Main Loop
 	while 1:
 		clock.tick(60)
 
 		#Handle Input Events
-		for event in pygame.event.get():
+		for event in pygame.event.get(QUIT):
 			if event.type == QUIT:
-				return
-			elif event.type == KEYDOWN and event.key == K_ESCAPE:
-				return
-			elif event.type == MOUSEBUTTONDOWN:
-				pass
-				#if fist.punch(chimp):
-				#	punch_sound.play() #punch
-				#	chimp.punched()
-				#else:
-				#	whiff_sound.play() #miss
-			elif event.type is MOUSEBUTTONUP:
-				pass
-				#fist.unpunch()
-
-		allsprites.update()
+				return		
 		
-		# additional game logic:
-		if circularspritesoverlap(cursor, target):
-			# hit. 
-			# todo: increment counter of targets hit
-			print 'hit!'
-			# reposition target
-			target.rect.left = rnd.randint(0, screenarea.width - target.diameter)
-			target.rect.top = rnd.randint(0, screenarea.height - target.diameter)
-		for asteroid in asteroids:
-			if circularspritesoverlap(cursor, asteroid):
-				print 'dead', cursor.rect.left, cursor.rect.top
-				# todo: restart level or somesuch			
+		try:
+			gameplay.update()
+		except QuitGame as e:
+			print e
+			return
 
-		#Draw Everything
-		screen.blit(background, (0, 0))
-		allsprites.draw(screen)
+		gameplay.draw()
+		
 		pygame.display.flip()
 
 #Game Over
