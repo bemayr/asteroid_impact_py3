@@ -59,7 +59,7 @@ class Cursor(pygame.sprite.Sprite):
 		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
 		self.image, self.rect = load_image('cursor.png', -1)
 		self.image.convert_alpha()
-		self.diameter = 50
+		self.diameter = 16
 		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
 		self.image.convert()
 		self.rect.width = self.diameter
@@ -75,7 +75,7 @@ class Target(pygame.sprite.Sprite):
 	def __init__(self):
 		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
 		self.image, self.rect = load_image('target.png', -1)
-		self.diameter = 50
+		self.diameter = 16
 		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
 		self.image.convert()
 		self.rect.width = self.diameter
@@ -86,19 +86,19 @@ class Target(pygame.sprite.Sprite):
 		pass
 
 class Asteroid(pygame.sprite.Sprite):
-	def __init__(self):
+	def __init__(self, diameter=100, dx=2, dy=5, top=10, left=10):
 		pygame.sprite.Sprite.__init__(self) #call Sprite intializer
 		self.image, self.rect = load_image('asteroid.png', -1)
-		self.diameter = 100
+		self.diameter = diameter
 		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
 		self.image.convert()
 		self.rect.width = self.diameter
 		self.rect.height = self.diameter
 		screen = pygame.display.get_surface()
 		self.area = screen.get_rect()
-		self.rect.topleft = 10, 10
-		self.dx = 2
-		self.dy = 5
+		self.rect.topleft = top, left
+		self.dx = dx
+		self.dy = dy
 
 	def update(self):
 		newpos = self.rect.move((self.dx, self.dy))
@@ -214,7 +214,9 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		
 		self.cursor = Cursor()
 		self.target = Target()
-		self.asteroids = [Asteroid()]
+		self.asteroids = [Asteroid(diameter=100, dx=2, dy=5, top=100, left=10),
+			Asteroid(diameter=80, dx=4, dy=3, top=200, left=50),
+			Asteroid(diameter=60, dx=-5, dy=-3, top=120, left=400)]
 		self.allsprites = pygame.sprite.RenderPlain(self.asteroids + [self.target, self.cursor])
 		self.rnd = random.Random(3487437)
 
