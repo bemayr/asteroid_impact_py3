@@ -138,10 +138,66 @@ def circularspritesoverlap(a, b):
 	# x1, y1, d1, x2, y2, d2
 	return ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1)) < ((d1 * d1 + d2 * d2) / 2.)
 
-class AsteroidImpactGameplayScreen(GameScreen):
+class ClickToBeginOverlayScreen(GameScreen):
 	def __init__(self, screen, gamescreenstack):
 		GameScreen.__init__(self, screen, gamescreenstack)
-		self.screen = screen
+		self.opaque = False
+		self.screenarea = self.screen.get_rect()
+		if pygame.font:
+			self.font = pygame.font.Font(None, 36)
+			self.text = self.font.render("Click To Begin", 1, (250, 10, 10))
+			self.textpos = self.text.get_rect(centerx=self.screenarea.width/2,centery=self.screenarea.height/2)
+
+	def draw(self):
+		self.screen.blit(self.text, self.textpos)
+		pass
+
+	def update(self):
+		for event in pygame.event.get():
+			if event.type == KEYDOWN and event.key == K_ESCAPE:
+				raise QuitGame('ESC Pressed')
+			elif event.type == MOUSEBUTTONDOWN:
+				self.screenstack.pop()
+				pass
+			elif event.type is MOUSEBUTTONUP:
+				pass
+				
+		if len(self.screenstack) > 1 and isinstance(self.screenstack[-2], AsteroidImpactGameplayScreen):
+			# update cursor:
+			self.screenstack[-2].cursor.update()
+
+class GameOverOverlayScreen(GameScreen):
+	def __init__(self, screen, gamescreenstack):
+		GameScreen.__init__(self, screen, gamescreenstack)
+		self.opaque = False
+		self.screenarea = self.screen.get_rect()
+		if pygame.font:
+			self.font = pygame.font.Font(None, 36)
+			self.text = self.font.render("Game Over", 1, (250, 10, 10))
+			self.textpos = self.text.get_rect(centerx=self.screenarea.width/2,centery=self.screenarea.height/2)
+
+	def draw(self):
+		self.screen.blit(self.text, self.textpos)
+		pass
+
+	def update(self):
+		for event in pygame.event.get():
+			if event.type == KEYDOWN and event.key == K_ESCAPE:
+				raise QuitGame('ESC Pressed')
+			elif event.type == MOUSEBUTTONDOWN:
+				self.screenstack.pop()
+				if isinstance(self.screenstack[-1], AsteroidImpactGameplayScreen):
+					self.screenstack.pop()
+				# start game over
+				self.screenstack.append(AsteroidImpactGameplayScreen(self.screen, self.screenstack))
+				self.screenstack.append(ClickToBeginOverlayScreen(self.screen, self.screenstack))
+			elif event.type is MOUSEBUTTONUP:
+				pass
+
+
+class AsteroidImpactGameplayScreen(GameScreen):
+	def __init__(self, screen, screenstack):
+		GameScreen.__init__(self, screen, screenstack)
 		self.screenarea = self.screen.get_rect()
 		self.background = pygame.Surface(screen.get_size())
 		self.background = self.background.convert()
@@ -184,7 +240,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		for asteroid in self.asteroids:
 			if circularspritesoverlap(self.cursor, asteroid):
 				print 'dead', self.cursor.rect.left, self.cursor.rect.top
-				# todo: restart level or somesuch			
+				self.screenstack.append(GameOverOverlayScreen(self.screen, self.screenstack))
 
 	def draw(self):
 		self.screen.blit(self.background, (0, 0))
@@ -200,8 +256,8 @@ def main():
 	pygame.mouse.set_visible(0)
 	
 	gamescreenstack = []
-	gameplay = AsteroidImpactGameplayScreen(screen, gamescreenstack)
-	gamescreenstack.append(gameplay)
+	gamescreenstack.append(AsteroidImpactGameplayScreen(screen, gamescreenstack))
+	gamescreenstack.append(ClickToBeginOverlayScreen(screen, gamescreenstack))
 	
 	pygame.display.flip()
 
@@ -218,12 +274,20 @@ def main():
 				return		
 		
 		try:
-			gameplay.update()
+			gamescreenstack[-1].update()
 		except QuitGame as e:
 			print e
 			return
 
-		gameplay.draw()
+		# draw topmost opaque screen and everything above it
+		topopaquescreenindex = -1
+		for i in range(-1, -1-len(gamescreenstack), -1):
+			topopaquescreenindex = i
+			if gamescreenstack[i].opaque:
+				break
+
+		for screenindex in range(topopaquescreenindex, 0, 1):
+			gamescreenstack[screenindex].draw()
 		
 		pygame.display.flip()
 
