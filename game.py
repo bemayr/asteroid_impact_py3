@@ -138,7 +138,7 @@ def circularspritesoverlap(a, b):
 	y2 = b.rect.centery
 	d2 = b.diameter
 	# x1, y1, d1, x2, y2, d2
-	return ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1)) < ((d1 * d1 + d2 * d2) / 2.)
+	return ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1)) < (.25*(d1 + d2)*(d1 + d2))
 
 class ClickToBeginOverlayScreen(GameScreen):
 	def __init__(self, screen, gamescreenstack):
