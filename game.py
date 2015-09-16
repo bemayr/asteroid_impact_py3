@@ -66,28 +66,30 @@ class Cursor(pygame.sprite.Sprite):
 		self.rect.height = self.diameter
 		self.punching = 0
 
-	def update(self):
+	def update(self, millis):
 		"move the fist based on the mouse position"
 		pos = pygame.mouse.get_pos()
 		self.rect.center = pos
 
 class Target(pygame.sprite.Sprite):
-	def __init__(self):
+	def __init__(self, diameter=16, left=10, top=10):
 		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
 		self.image, self.rect = load_image('target.png', -1)
 		self.image = self.image.convert_alpha()
-		self.diameter = 16
+		self.diameter = diameter
 		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
 		self.image.convert()
 		self.rect.width = self.diameter
 		self.rect.height = self.diameter
+		self.rect.top = top
+		self.rect.left = left
 
-	def update(self):
-		# hit test done in Cursor
+	def update(self, millis):
+		# hit test done in AsteroidImpactGameplayScreen
 		pass
 
 class Asteroid(pygame.sprite.Sprite):
-	def __init__(self, diameter=100, dx=2, dy=5, top=10, left=10):
+	def __init__(self, diameter=100, dx=2, dy=5, left=10, top=10):
 		pygame.sprite.Sprite.__init__(self) #call Sprite intializer
 		self.image, self.rect = load_image('asteroid.png', -1)
 		self.image = self.image.convert_alpha()
@@ -98,11 +100,12 @@ class Asteroid(pygame.sprite.Sprite):
 		self.rect.height = self.diameter
 		screen = pygame.display.get_surface()
 		self.area = screen.get_rect()
-		self.rect.topleft = top, left
+		self.rect.top = top
+		self.rect.left = left
 		self.dx = dx
 		self.dy = dy
 
-	def update(self):
+	def update(self, millis):
 		newpos = self.rect.move((self.dx, self.dy))
 		if self.rect.left < self.area.left or self.rect.right > self.area.right:
 			self.dx = -self.dx
@@ -110,6 +113,72 @@ class Asteroid(pygame.sprite.Sprite):
 			self.dy = -self.dy
 		newpos = self.rect.move((self.dx, self.dy))
 		self.rect = newpos
+
+class BasePowerup(pygame.sprite.Sprite):
+	def __init__(self):
+		pass
+	def update(self, millis):
+		pass
+
+class SlowPowerup(pygame.sprite.Sprite):
+	def __init__(self, diameter=16, left=50, top=50):
+		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
+		self.image, self.rect = load_image('icecube.png', -1)
+		self.image = self.image.convert_alpha()
+		self.diameter = diameter
+		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
+		self.image.convert()
+		self.rect.width = self.diameter
+		self.rect.height = self.diameter
+		self.rect.left = left
+		self.rect.top = top
+
+		self.duration = 5.0 # seconds
+		self.active = False
+		self.timeremaining = 0
+
+	def update(self, millis):
+		# hit test done in AsteroidImpactGameplayScreen
+		pass
+		
+class ShieldPowerup(pygame.sprite.Sprite):
+	def __init__(self, diameter=16, left=40, top=40):
+		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
+		self.image, self.rect = load_image('shield.png', -1)
+		self.image = self.image.convert_alpha()
+		self.diameter = diameter
+		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
+		self.rect.width = self.diameter
+		self.rect.height = self.diameter
+		self.rect.left = left
+		self.rect.top = top
+
+		self.maxduration = 5.0 # seconds
+		self.active = False
+		self.duration = 0
+		
+		self.used = False
+
+	def update(self, millis):
+		if (self.active):
+			# follow on top of cursor:
+			pos = pygame.mouse.get_pos()
+			self.rect.center = pos
+
+			self.duration += millis / 1000.
+			
+			if self.duration > self.maxduration:
+				# deactivate:
+				self.active = False
+				self.rect = self.oldrect
+				self.used = True
+				self.kill()
+
+	def activate(self, *args):
+		self.oldrect = self.rect.copy()
+		self.active = True
+		self.duration = 0
+		self.used = False
 
 class QuitGame(Exception):
 	def __init__(self, value):
@@ -123,7 +192,7 @@ class GameScreen():
 		self.screenstack = screenstack
 		self.opaque = True
 		
-	def update(self):
+	def update(self, millis):
 		pass
 	
 	def draw(self):
@@ -154,7 +223,7 @@ class ClickToBeginOverlayScreen(GameScreen):
 		self.screen.blit(self.text, self.textpos)
 		pass
 
-	def update(self):
+	def update(self, millis):
 		for event in pygame.event.get():
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
 				raise QuitGame('ESC Pressed')
@@ -166,7 +235,7 @@ class ClickToBeginOverlayScreen(GameScreen):
 				
 		if len(self.screenstack) > 1 and isinstance(self.screenstack[-2], AsteroidImpactGameplayScreen):
 			# update cursor:
-			self.screenstack[-2].cursor.update()
+			self.screenstack[-2].cursor.update(millis)
 
 class GameOverOverlayScreen(GameScreen):
 	def __init__(self, screen, gamescreenstack):
@@ -182,7 +251,7 @@ class GameOverOverlayScreen(GameScreen):
 		self.screen.blit(self.text, self.textpos)
 		pass
 
-	def update(self):
+	def update(self, millis):
 		for event in pygame.event.get():
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
 				raise QuitGame('ESC Pressed')
@@ -196,7 +265,6 @@ class GameOverOverlayScreen(GameScreen):
 			elif event.type is MOUSEBUTTONUP:
 				pass
 
-
 class AsteroidImpactGameplayScreen(GameScreen):
 	def __init__(self, screen, screenstack):
 		GameScreen.__init__(self, screen, screenstack)
@@ -207,22 +275,31 @@ class AsteroidImpactGameplayScreen(GameScreen):
 
 		if pygame.font:
 			self.font = pygame.font.Font(None, 36)
-			text = self.font.render("Test", 1, (10, 10, 10))
+			text = self.font.render("Placeholder Art", 1, (10, 10, 10))
 			textpos = text.get_rect(centerx=self.background.get_width()/2)
 			self.background.blit(text, textpos)
 
 		#Display The Background
 		self.screen.blit(self.background, (0, 0))
 		
+		self.rnd = random.Random(3487437)
 		self.cursor = Cursor()
-		self.target = Target()
+		self.target = Target(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16))
 		self.asteroids = [Asteroid(diameter=100, dx=2, dy=5, top=100, left=10),
 			Asteroid(diameter=80, dx=4, dy=3, top=200, left=50),
 			Asteroid(diameter=60, dx=-5, dy=-3, top=120, left=400)]
-		self.allsprites = pygame.sprite.RenderPlain(self.asteroids + [self.target, self.cursor])
-		self.rnd = random.Random(3487437)
+		self.powerup_list = [
+			#SlowPowerup(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16)),
+			ShieldPowerup(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16)),
+			ShieldPowerup(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16)),
+			ShieldPowerup(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16)),	
+			]
+		self.powerup = self.powerup_list[0]
+		self.next_powerup_list_index = 1 % len(self.powerup_list)
+		self.mostsprites = pygame.sprite.OrderedUpdates(self.asteroids + [self.cursor, self.target])
+		self.powerupsprites = pygame.sprite.Group(self.powerup)
 
-	def update(self):
+	def update(self, millis):
 		for event in pygame.event.get():
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
 				raise QuitGame('ESC Pressed')
@@ -231,7 +308,18 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			elif event.type is MOUSEBUTTONUP:
 				pass
 
-		self.allsprites.update()
+		self.mostsprites.update(millis)
+		# update powerups
+		# if current power-up has been used completely:
+		if self.powerup.used:
+			# switch to and get ready next one:
+			self.powerup = self.powerup_list[self.next_powerup_list_index]
+			self.powerup.used = False
+			print self.powerup.rect
+			self.powerupsprites.empty()
+			self.powerupsprites.add(self.powerup)
+			self.next_powerup_list_index = (1 + self.next_powerup_list_index) % len(self.powerup_list)
+		self.powerupsprites.update(millis)
 		
 		# additional game logic:
 		if circularspritesoverlap(self.cursor, self.target):
@@ -243,13 +331,24 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			self.target.rect.top = self.rnd.randint(0, self.screenarea.height - self.target.diameter)
 		for asteroid in self.asteroids:
 			if circularspritesoverlap(self.cursor, asteroid):
-				print 'dead', self.cursor.rect.left, self.cursor.rect.top
-				self.screenstack.append(GameOverOverlayScreen(self.screen, self.screenstack))
+				# todo: find a cleaner way to have the shield powerup do this work:
+				if not (self.powerup != None and self.powerup.__class__ == ShieldPowerup and self.powerup.active):
+					print 'dead', self.cursor.rect.left, self.cursor.rect.top
+					self.screenstack.append(GameOverOverlayScreen(self.screen, self.screenstack))
+		# powerups?
+		if self.powerup != None \
+			and circularspritesoverlap(self.cursor, self.powerup) \
+			and not self.powerup.active \
+			and not self.powerup.used:
+			print 'hit powerup', self.cursor.rect.left, self.cursor.rect.top, self.powerup
+			# TODO: decide where and when to spawn next powerup
+			# how should powerup behavior be implemented?
+			self.powerup.activate(self.cursor, self.asteroids)
 
 	def draw(self):
 		self.screen.blit(self.background, (0, 0))
-		self.allsprites.draw(self.screen)
-	
+		self.mostsprites.draw(self.screen)
+		self.powerupsprites.draw(self.screen)
 
 
 
@@ -270,7 +369,7 @@ def main():
 
 	#Main Loop
 	while 1:
-		clock.tick(60)
+		millis = clock.tick(60)
 
 		#Handle Input Events
 		for event in pygame.event.get(QUIT):
@@ -278,7 +377,7 @@ def main():
 				return		
 		
 		try:
-			gamescreenstack[-1].update()
+			gamescreenstack[-1].update(millis)
 		except QuitGame as e:
 			print e
 			return
