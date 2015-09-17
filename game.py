@@ -19,6 +19,7 @@ from __future__ import absolute_import, division
 import os, pygame
 from pygame.locals import *
 import random
+import math
 
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
@@ -115,43 +116,10 @@ class Asteroid(pygame.sprite.Sprite):
 		self.rect = newpos
 
 class BasePowerup(pygame.sprite.Sprite):
-	def __init__(self):
-		pass
-	def update(self, millis):
-		pass
-
-class SlowPowerup(pygame.sprite.Sprite):
-	def __init__(self, diameter=16, left=50, top=50):
+	def __init__(self, diameter=16, left=50, top=50, maxduration=5.0):
 		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
-		self.image, self.rect = load_image('icecube.png', -1)
-		self.image = self.image.convert_alpha()
 		self.diameter = diameter
-		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
-		self.image.convert()
-		self.rect.width = self.diameter
-		self.rect.height = self.diameter
-		self.rect.left = left
-		self.rect.top = top
-
-		self.duration = 5.0 # seconds
-		self.active = False
-		self.timeremaining = 0
-
-	def update(self, millis):
-		# hit test done in AsteroidImpactGameplayScreen
-		pass
-		
-class ShieldPowerup(pygame.sprite.Sprite):
-	def __init__(self, diameter=16, left=40, top=40):
-		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
-		self.image, self.rect = load_image('shield.png', -1)
-		self.image = self.image.convert_alpha()
-		self.diameter = diameter
-		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
-		self.rect.width = self.diameter
-		self.rect.height = self.diameter
-		self.rect.left = left
-		self.rect.top = top
+		self.rect = pygame.Rect(left, top, diameter, diameter) # likely overwritten in derived class
 
 		self.maxduration = 5.0 # seconds
 		self.active = False
@@ -161,24 +129,92 @@ class ShieldPowerup(pygame.sprite.Sprite):
 
 	def update(self, millis):
 		if (self.active):
-			# follow on top of cursor:
-			pos = pygame.mouse.get_pos()
-			self.rect.center = pos
-
 			self.duration += millis / 1000.
 			
 			if self.duration > self.maxduration:
 				# deactivate:
-				self.active = False
-				self.rect = self.oldrect
-				self.used = True
-				self.kill()
+				self.deactivate()
 
 	def activate(self, *args):
 		self.oldrect = self.rect.copy()
 		self.active = True
 		self.duration = 0
 		self.used = False
+		
+	def deactivate(self, *args):
+		self.active = False
+		self.rect = self.oldrect
+		self.used = True
+		self.kill()
+
+class SlowPowerup(BasePowerup):
+	def __init__(self, diameter=16, left=50, top=50):
+		BasePowerup.__init__(self, diameter=diameter, left=left, top=top, maxduration=5.0)
+		self.image, self.rect = load_image('icecube.png', -1)
+		self.image = self.image.convert_alpha()
+		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
+		self.rect.width = self.diameter
+		self.rect.height = self.diameter
+		self.rect.left = left
+		self.rect.top = top
+
+	def update(self, millis):
+		if self.active:
+			# slowing effect of asteroids happens in Game Screen
+			pass
+		BasePowerup.update(self, millis)
+	
+	def activate(self, cursor, asteroids, *args):
+		BasePowerup.activate(self, *args)
+
+		# adjust speed of asteroids
+		speedfactor = 0.25
+		self.asteroids = asteroids
+		for asteroid in self.asteroids:
+			asteroid.originaldx = asteroid.dx
+			asteroid.originaldy = asteroid.dy
+			asteroid.dx *= speedfactor
+			asteroid.dy *= speedfactor
+
+		# disappear offscreen
+		self.rect.top = -100
+		self.rect.left = -100
+
+	
+	def deactivate(self, *args):
+		BasePowerup.deactivate(self, *args)
+
+		# restore speed of asteroids
+		for asteroid in self.asteroids:
+			# to keep the asteroid moving the same direction,
+ 			# copy sign from current movement to speed of original movement
+			asteroid.dx = math.copysign(asteroid.originaldx, asteroid.dx)
+			asteroid.dy = math.copysign(asteroid.originaldy, asteroid.dy)
+		
+class ShieldPowerup(BasePowerup):
+	def __init__(self, diameter=16, left=40, top=40):
+		BasePowerup.__init__(self, diameter=diameter, left=left, top=top, maxduration=5.0)
+		self.image, self.rect = load_image('shield.png', -1)
+		self.image = self.image.convert_alpha()
+		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
+		self.rect.width = self.diameter
+		self.rect.height = self.diameter
+		self.rect.left = left
+		self.rect.top = top
+
+	def activate(self, cursor, asteroids, *args):
+		self.cursor = cursor
+		BasePowerup.activate(self, *args)
+		
+	def update(self, millis):
+		if (self.active):
+			# follow on top of cursor:
+			#pos = pygame.mouse.get_pos()
+			#self.rect.center = pos
+			self.rect = self.cursor.rect
+			# "ignore collisions" logic happens in Game Screen
+		BasePowerup.update(self, millis)
+
 
 class QuitGame(Exception):
 	def __init__(self, value):
@@ -289,10 +325,12 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			Asteroid(diameter=80, dx=4, dy=3, top=200, left=50),
 			Asteroid(diameter=60, dx=-5, dy=-3, top=120, left=400)]
 		self.powerup_list = [
-			#SlowPowerup(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16)),
 			ShieldPowerup(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16)),
+			SlowPowerup(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16)),
 			ShieldPowerup(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16)),
+			SlowPowerup(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16)),
 			ShieldPowerup(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16)),	
+			SlowPowerup(diameter=16, left=self.rnd.randint(0, self.screenarea.width - 16), top=self.rnd.randint(0, self.screenarea.height - 16)),
 			]
 		self.powerup = self.powerup_list[0]
 		self.next_powerup_list_index = 1 % len(self.powerup_list)
