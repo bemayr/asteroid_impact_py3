@@ -103,17 +103,28 @@ class Asteroid(pygame.sprite.Sprite):
 		self.area = screen.get_rect()
 		self.rect.top = top
 		self.rect.left = left
+		# rect uses integer positions but I need to handle fractional pixel/frame speeds.
+		# store float x/y positions here:
+		self.topfloat = float(top)
+		self.leftfloat = float(left)
 		self.dx = dx
 		self.dy = dy
 
 	def update(self, millis):
-		newpos = self.rect.move((self.dx, self.dy))
-		if self.rect.left < self.area.left or self.rect.right > self.area.right:
-			self.dx = -self.dx
-		if self.rect.top < self.area.top or self.rect.bottom > self.area.bottom:
-			self.dy = -self.dy
-		newpos = self.rect.move((self.dx, self.dy))
-		self.rect = newpos
+		# bounce by setting sign of x or y speed if off of corresponding side of screen
+		if self.rect.left < self.area.left:
+			self.dx = abs(self.dx)
+		if  self.rect.right > self.area.right:
+			self.dx = -abs(self.dx)
+		if self.rect.top < self.area.top:
+			self.dy = abs(self.dy)
+		if self.rect.bottom > self.area.bottom:
+			self.dy = -abs(self.dy)
+			
+		self.leftfloat += self.dx
+		self.topfloat += self.dy
+ 		self.rect.left = self.leftfloat
+ 		self.rect.top = self.topfloat
 
 class BasePowerup(pygame.sprite.Sprite):
 	def __init__(self, diameter=16, left=50, top=50, maxduration=5.0):
