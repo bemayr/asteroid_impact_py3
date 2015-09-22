@@ -188,11 +188,9 @@ class SlowPowerup(BasePowerup):
 		self.rect.left = left
 		self.rect.top = top
 		self.sound_begin = load_sound('slow start.wav')
-		self.sound_begin.set_volume(1.5)
 		self.sound_end = load_sound('slow end.wav')
-		self.sound_end.set_volume(1.5)
-		# these let me start the ending sound to end when the effect ends:
-		self.sound_end_duration = self.sound_end.get_length()
+		# these let me start the ending sound to end overlapping when the effect ends:
+		self.sound_end_duration = self.sound_end.get_length() - 0.5
 		self.sound_end_started = False
 
 
@@ -246,19 +244,36 @@ class ShieldPowerup(BasePowerup):
 		self.rect.height = self.diameter
 		self.rect.left = left
 		self.rect.top = top
+		self.sound_begin = load_sound('shield start.wav')
+		self.sound_end = load_sound('shield end.wav')
+		# these let me start the ending sound to end overlapping when the effect ends:
+		self.sound_end_duration = self.sound_end.get_length() - 1.0
+		self.sound_end_started = False
 
 	def activate(self, cursor, asteroids, *args):
-		self.cursor = cursor
 		BasePowerup.activate(self, *args)
+
+		self.cursor = cursor
+
+		self.sound_begin.play()
+
+		self.sound_end_started = False
 		
 	def update(self, millis):
+		BasePowerup.update(self, millis)
 		if (self.active):
 			# follow on top of cursor:
 			#pos = pygame.mouse.get_pos()
 			#self.rect.center = pos
 			self.rect = self.cursor.rect
+
 			# "ignore collisions" logic happens in Game Screen
-		BasePowerup.update(self, millis)
+
+			# start the end effect sound to end when powerup ends:
+			if self.maxduration - self.duration < self.sound_end_duration \
+				and not self.sound_end_started:
+				self.sound_end_started = True
+				self.sound_end.play()
 
 
 class QuitGame(Exception):
