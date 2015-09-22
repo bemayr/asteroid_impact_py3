@@ -42,7 +42,13 @@ def load_image(name, colorkey=None):
 
 def load_sound(name):
 	class NoneSound:
+		def __init(self):
+			self.volume = 1.0
 		def play(self): pass
+		def stop(self): pass
+		def get_length(self): return 1.0 #seconds
+		def set_volume(self, volume): self.volume = volume
+		def get_volume(self): return self.volume
 	if not pygame.mixer or not pygame.mixer.get_init():
 		return NoneSound()
 	fullname = os.path.join('data', name)
@@ -52,8 +58,17 @@ def load_sound(name):
 		print 'Cannot load sound:', fullname
 		raise SystemExit, message
 	return sound
-
-
+	
+def load_music(name):
+	if not pygame.mixer or not pygame.mixer.get_init():
+		return
+	fullname = os.path.join('data', name)
+	try:
+		pygame.mixer.music.load(fullname)
+	except pygame.error, message:
+		print 'Cannot load music:', fullname
+		raise SystemExit, message
+		
 #classes for our game objects
 class Cursor(pygame.sprite.Sprite):
 	def __init__(self):
@@ -84,6 +99,10 @@ class Target(pygame.sprite.Sprite):
 		self.rect.height = self.diameter
 		self.rect.top = top
 		self.rect.left = left
+		self.pickup_sound = load_sound('chime.wav')
+	
+	def pickedup(self):
+		self.pickup_sound.play()
 
 	def update(self, millis):
 		# hit test done in AsteroidImpactGameplayScreen
@@ -168,12 +187,24 @@ class SlowPowerup(BasePowerup):
 		self.rect.height = self.diameter
 		self.rect.left = left
 		self.rect.top = top
+		self.sound_begin = load_sound('slow start.wav')
+		self.sound_begin.set_volume(1.5)
+		self.sound_end = load_sound('slow end.wav')
+		self.sound_end.set_volume(1.5)
+		# these let me start the ending sound to end when the effect ends:
+		self.sound_end_duration = self.sound_end.get_length()
+		self.sound_end_started = False
+
 
 	def update(self, millis):
-		if self.active:
-			# slowing effect of asteroids happens in Game Screen
-			pass
 		BasePowerup.update(self, millis)
+		
+		if self.active:
+			# start the end effect sound to end when powerup ends:
+			if self.maxduration - self.duration < self.sound_end_duration \
+				and not self.sound_end_started:
+				self.sound_end_started = True
+				self.sound_end.play()
 	
 	def activate(self, cursor, asteroids, *args):
 		BasePowerup.activate(self, *args)
@@ -191,7 +222,10 @@ class SlowPowerup(BasePowerup):
 		self.rect.top = -100
 		self.rect.left = -100
 
-	
+		self.sound_begin.play()
+
+		self.sound_end_started = False
+			
 	def deactivate(self, *args):
 		BasePowerup.deactivate(self, *args)
 
@@ -374,7 +408,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		if circularspritesoverlap(self.cursor, self.target):
 			# hit. 
 			# todo: increment counter of targets hit
-			print 'hit!'
+			self.target.pickedup()
 			# reposition target
 			self.target.rect.left = self.rnd.randint(0, self.screenarea.width - self.target.diameter)
 			self.target.rect.top = self.rnd.randint(0, self.screenarea.height - self.target.diameter)
@@ -402,6 +436,8 @@ class AsteroidImpactGameplayScreen(GameScreen):
 
 
 def main():
+	if pygame.mixer:
+		pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
 	pygame.init()
 	screen = pygame.display.set_mode((640, 480))
 	pygame.display.set_caption('Asteroid Impact')
@@ -416,6 +452,10 @@ def main():
 	#Prepare Game Objects
 	clock = pygame.time.Clock()
 
+	if pygame.mixer:
+		load_music('through space.ogg')
+		pygame.mixer.music.play()
+	
 	#Main Loop
 	while 1:
 		millis = clock.tick(60)
@@ -423,7 +463,7 @@ def main():
 		#Handle Input Events
 		for event in pygame.event.get(QUIT):
 			if event.type == QUIT:
-				return		
+				return
 		
 		try:
 			gamescreenstack[-1].update(millis)
