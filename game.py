@@ -102,11 +102,12 @@ class Target(pygame.sprite.Sprite):
 		self.rect.height = self.diameter
 		self.rect.top = top
 		self.rect.left = left
-		self.pickup_sound = load_sound('chime.wav')
+		self.pickup_sound = load_sound('ring_inventory.wav')
 	
 	def pickedup(self):
 		self.pickup_sound.play()
-
+		pass
+		
 	def update(self, millis):
 		# hit test done in AsteroidImpactGameplayScreen
 		pass
@@ -377,6 +378,8 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			text = self.font.render("Placeholder Art", 1, (10, 10, 10))
 			textpos = text.get_rect(centerx=self.background.get_width()/2)
 			self.background.blit(text, textpos)
+			
+		self.sound_death = load_sound('DeathFlash.wav')
 
 		#Display The Background
 		self.screen.blit(self.background, (0, 0))
@@ -434,8 +437,10 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			if circularspritesoverlap(self.cursor, asteroid):
 				# todo: find a cleaner way to have the shield powerup do this work:
 				if not (self.powerup != None and self.powerup.__class__ == ShieldPowerup and self.powerup.active):
+					self.sound_death.play()
 					print 'dead', self.cursor.rect.left, self.cursor.rect.top
 					self.screenstack.append(GameOverOverlayScreen(self.screen, self.screenstack))
+					break
 		# powerups?
 		if self.powerup != None \
 			and circularspritesoverlap(self.cursor, self.powerup) \

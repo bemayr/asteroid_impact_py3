@@ -1,6 +1,19 @@
 Music:
-through space.ogg
-by maxstack ( http://soundcloud.com/maxstack ) 
+maxstack ( http://soundcloud.com/maxstack ) 
 Licensed CC-BY-SA 3.0
-http://opengameart.org/content/through-space
+through space.ogg | http://opengameart.org/content/through-space
 
+(c) copyright Blender Foundation | apricot.blender.org
+Licensed CC-BY 3.0
+DeathFlash.wav from YoFrankie!
+
+by artisticdude 
+Licensed CC-BY 3.0, CC-BY-SA 3.0 
+ring_inventory.wav from http://opengameart.org/content/inventory-sound-effects 
+
+Nick Winters
+Sound effects, Licensed CC-BY 3.0
+slow start.wav
+slow end.wav
+shield start.wav
+shield end.wav
