@@ -24,6 +24,8 @@ import math
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
 
+music_volume = 1.0
+effects_volume = 1.0
 
 #functions to create our resources
 def load_image(name, colorkey=None):
@@ -54,6 +56,7 @@ def load_sound(name):
 	fullname = os.path.join('data', name)
 	try:
 		sound = pygame.mixer.Sound(fullname)
+		sound.set_volume(effects_volume)
 	except pygame.error, message:
 		print 'Cannot load sound:', fullname
 		raise SystemExit, message
@@ -469,6 +472,7 @@ def main():
 
 	if pygame.mixer:
 		load_music('through space.ogg')
+		pygame.mixer.music.set_volume(music_volume)
 		pygame.mixer.music.play()
 	
 	#Main Loop
