@@ -32,6 +32,8 @@ def main():
 	screen = pygame.display.set_mode((640, 480))
 	pygame.display.set_caption('Asteroid Impact')
 	pygame.mouse.set_visible(0)
+	# capture mouse
+	pygame.event.set_grab(True)
 	
 	gamescreenstack = []
 	gamescreenstack.append(AsteroidImpactGameplayScreen(screen, gamescreenstack))
@@ -46,6 +48,7 @@ def main():
 		load_music('through space.ogg')
 		pygame.mixer.music.set_volume(music_volume)
 		pygame.mixer.music.play()
+	
 	
 	#Main Loop
 	while 1:
