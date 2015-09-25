@@ -48,8 +48,7 @@ def main():
 	pygame.event.set_grab(True)
 	
 	gamescreenstack = []
-	gamescreenstack.append(AsteroidImpactGameplayScreen(screen, gamescreenstack))
-	gamescreenstack.append(ClickToBeginOverlayScreen(screen, gamescreenstack))
+	gamescreenstack.append(AsteroidImpactInstructionsScreen(screen, gamescreenstack))
 	
 	pygame.display.flip()
 

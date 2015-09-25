@@ -43,7 +43,7 @@ class Target(pygame.sprite.Sprite):
 		pass
 
 class Asteroid(pygame.sprite.Sprite):
-	def __init__(self, diameter=100, dx=2, dy=5, left=10, top=10):
+	def __init__(self, diameter=100, dx=2, dy=5, left=10, top=10, area=None):
 		pygame.sprite.Sprite.__init__(self) #call Sprite intializer
 		self.image, self.rect = load_image('asteroid.png', -1)
 		self.image = self.image.convert_alpha()
@@ -53,7 +53,9 @@ class Asteroid(pygame.sprite.Sprite):
 		self.rect.width = self.diameter
 		self.rect.height = self.diameter
 		screen = pygame.display.get_surface()
-		self.area = screen.get_rect()
+		self.area = area
+		if not self.area:
+			self.area = screen.get_rect()
 		self.rect.top = top
 		self.rect.left = left
 		# rect uses integer positions but I need to handle fractional pixel/frame speeds.

@@ -22,6 +22,107 @@ class GameScreen():
 		# TODO: fill entire screen with a unique color to indicate that draw() is being called here
 		pass
 
+class TextSprite:
+	'Combines surface (bitmap) for text and drawing position to make drawing static text easier'
+	def __init__(self, textsurf, **kwargs):
+		self.textsurf = textsurf
+		self.textrect = self.textsurf.get_rect(**kwargs)
+	def draw(self, screen):
+		screen.blit(self.textsurf, self.textrect)
+
+class AsteroidImpactInstructionsScreen(GameScreen):
+	def __init__(self, screen, gamescreenstack):
+		GameScreen.__init__(self, screen, gamescreenstack)
+		self.opaque = True
+		self.screenarea = self.screen.get_rect()
+
+		self.background = pygame.Surface(screen.get_size())
+		self.background = self.background.convert()
+		self.background.fill((250, 250, 250))
+
+		self.textsprites = []
+		self.sprites =  pygame.sprite.Group()
+
+		self.font_big = load_font('freesansbold.ttf', 36)
+		red = (250,10,10)
+		black = (10,10,10)
+		self.font = load_font('freesansbold.ttf', 16)
+		self.textsprites.append(TextSprite(
+			self.font_big.render("How to Play", 1, red),
+			centerx=self.screenarea.width/2, top=0))
+
+		s = Cursor()
+		s.rect.topleft = (60, 60)
+		self.sprites.add(s)
+		self.textsprites.append(TextSprite(
+			self.font.render("Move your ship around with your mouse, picking up crystals", 1, black),
+			left=120, top=60))
+
+		s = Target()
+		s.rect.topleft = (60, 120)
+		self.sprites.add(s)
+		self.textsprites.append(TextSprite(
+			self.font.render("Pick up all the crystals", 1, black),
+			left=120, top=120))
+
+		s = Asteroid(diameter=16)
+		s.rect.topleft = (60, 180)
+		self.sprites.add(s)
+		asteroidbounds = pygame.Rect(60, 200, 480-60-60, 80)
+		self.asteroids = pygame.sprite.Group([
+			Asteroid(diameter=32,dx=1.5,dy=1.0,top=asteroidbounds.top,left=asteroidbounds.left,area=asteroidbounds),
+			Asteroid(diameter=40,dx=2.5,dy=-1,top=asteroidbounds.top+10,left=asteroidbounds.left+200,area=asteroidbounds),
+			Asteroid(diameter=20,dx=-1,dy=-3,top=asteroidbounds.top+20,left=asteroidbounds.left+300,area=asteroidbounds)])
+		self.textsprites.append(TextSprite(
+			self.font.render("Avoid the bouncing asteroids. Hit one and it's game over.", 1, black),
+			left=120, top=180))
+
+		s = ShieldPowerup()
+		s.rect.topleft = (60, 300)
+		self.sprites.add(s)
+		self.textsprites.append(TextSprite(
+			self.font.render("Pick up a shield to pass through asteroids for a few seconds", 1, black),
+			left=120, top=300))
+
+		s = SlowPowerup()
+		s.rect.topleft = (60, 360)
+		self.sprites.add(s)
+		self.textsprites.append(TextSprite(
+			self.font.render("Pick up a clock to slow asteroids for a few seconds", 1, black),
+			left=120, top=360))
+
+		self.textsprites.append(TextSprite(
+			self.font_big.render("Click To Begin", 1, (250, 10, 10)),
+			centerx=self.screenarea.width/2, bottom=self.screenarea.height))
+
+	def draw(self):
+		# draw background
+		self.screen.blit(self.background, (0, 0))
+		# draw all text blocks:
+		for textsprite in self.textsprites:
+			textsprite.draw(self.screen)
+		self.sprites.draw(self.screen)
+		self.asteroids.draw(self.screen)
+
+	def update(self, millis):
+		for event in pygame.event.get():
+			if event.type == KEYDOWN and event.key == K_ESCAPE:
+				raise QuitGame('ESC Pressed')
+			elif event.type == MOUSEBUTTONDOWN:
+				# position cursor at the center
+				pygame.mouse.set_pos([self.screenarea.centerx, self.screenarea.centery])
+				# start the game: 
+				self.screenstack.pop()
+				self.screenstack.append(AsteroidImpactGameplayScreen(self.screen, self.screenstack))
+				self.screenstack.append(ClickToBeginOverlayScreen(self.screen, self.screenstack))
+				pass
+			elif event.type is MOUSEBUTTONUP:
+				pass
+		
+		# update asteroid positions
+		for asteroid in self.asteroids:
+			asteroid.update(millis)
+
 
 class ClickToBeginOverlayScreen(GameScreen):
 	def __init__(self, screen, gamescreenstack):
