@@ -28,10 +28,9 @@ class ClickToBeginOverlayScreen(GameScreen):
 		GameScreen.__init__(self, screen, gamescreenstack)
 		self.opaque = False
 		self.screenarea = self.screen.get_rect()
-		if pygame.font:
-			self.font = load_font('freesansbold.ttf', 36)
-			self.text = self.font.render("Click To Begin", 1, (250, 10, 10))
-			self.textpos = self.text.get_rect(centerx=self.screenarea.width/2,centery=self.screenarea.height/2)
+		self.font = load_font('freesansbold.ttf', 36)
+		self.text = self.font.render("Click To Begin", 1, (250, 10, 10))
+		self.textpos = self.text.get_rect(centerx=self.screenarea.width/2,centery=self.screenarea.height/2)
 
 	def draw(self):
 		self.screen.blit(self.text, self.textpos)
@@ -56,10 +55,9 @@ class GameOverOverlayScreen(GameScreen):
 		GameScreen.__init__(self, screen, gamescreenstack)
 		self.opaque = False
 		self.screenarea = self.screen.get_rect()
-		if pygame.font:
-			self.font = load_font('freesansbold.ttf', 36)
-			self.text = self.font.render("Game Over", 1, (250, 10, 10))
-			self.textpos = self.text.get_rect(centerx=self.screenarea.width/2,centery=self.screenarea.height/2)
+		self.font = load_font('freesansbold.ttf', 36)
+		self.text = self.font.render("Game Over", 1, (250, 10, 10))
+		self.textpos = self.text.get_rect(centerx=self.screenarea.width/2,centery=self.screenarea.height/2)
 
 	def draw(self):
 		self.screen.blit(self.text, self.textpos)
@@ -98,11 +96,10 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		self.background = self.background.convert()
 		self.background.fill((250, 250, 250))
 
-		if pygame.font:
-			self.font = load_font('freesansbold.ttf', 36)
-			text = self.font.render("Placeholder Art", 1, (10, 10, 10))
-			textpos = text.get_rect(centerx=self.background.get_width()/2)
-			self.background.blit(text, textpos)
+		self.font = load_font('freesansbold.ttf', 36)
+		text = self.font.render("Placeholder Art", 1, (10, 10, 10))
+		textpos = text.get_rect(centerx=self.background.get_width()/2)
+		self.background.blit(text, textpos)
 			
 		self.sound_death = load_sound('DeathFlash.wav')
 

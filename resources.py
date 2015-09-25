@@ -14,9 +14,26 @@ def resource_path(filename):
 	return os.path.join(filename)
 
 #functions to create our resources
-def load_font(name, *args):
+def load_font(name, size):
+	'Load pygame font for specified filename, font size'
 	fullname = resource_path(os.path.join('data', name))
-	return pygame.font.Font(fullname, *args)
+
+	if pygame.font:
+		return pygame.font.Font(fullname, size)
+		
+	class NoneFont:
+		def __init__(self, filename, fontsize):
+			self.fontsize = fontsize
+		def render(self, text, antialias, color, background=None):
+			'return no text on a new surface'
+			s = pygame.Surface(self.size(text))
+			s.fill(color)
+			return s
+		def size(self, text):
+			'return size of text without font'
+			return (self.fontsize*len(text)//4, self.fontsize)
+		
+	return NoneFont(fullname, size)
 
 def load_image(name, colorkey=None):
 	fullname = resource_path(os.path.join('data', name))
