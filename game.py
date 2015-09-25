@@ -16,6 +16,7 @@ from __future__ import absolute_import, division
 
 
 #Import Modules
+import argparse
 import pygame
 from pygame.locals import *
 
@@ -23,9 +24,20 @@ if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
 
 from screens import *
+import resources
 
+# command-line arguments:
+parser = argparse.ArgumentParser(description='Run Asteroid Impact game.')
+parser.add_argument('--music-volume', type=float, default=1.0,
+	help='music volume, 1.0 for full')
+parser.add_argument('--effects-volume', type=float, default=1.0,
+	help='sound effects volume, 1.0 for full')
 
 def main():
+	args = parser.parse_args()
+	resources.music_volume = args.music_volume
+	resources.effects_volume = args.effects_volume
+	
 	if pygame.mixer:
 		pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
 	pygame.init()
@@ -46,7 +58,7 @@ def main():
 
 	if pygame.mixer:
 		load_music('through space.ogg')
-		pygame.mixer.music.set_volume(music_volume)
+		pygame.mixer.music.set_volume(resources.music_volume)
 		pygame.mixer.music.play()
 	
 	
