@@ -1,14 +1,25 @@
 from __future__ import absolute_import, division
-import os, pygame
+import os, sys, pygame
 
 # Changing these only takes effect on newly loaded sounds
 # so set volume before any sounds are loaded
 music_volume = 1.0
 effects_volume = 1.0
 
+def resource_path(filename):
+	# The 'data' directory isn't in the same spot when pyinstaller creates a standalone build:
+	# (via http://irwinkwan.com/tag/pyinstaller/ )
+	#if hasattr(sys, "_MEIPASS"):
+	#	return os.path.join(sys._MEIPASS, filename)
+	return os.path.join(filename)
+
 #functions to create our resources
+def load_font(name, *args):
+	fullname = resource_path(os.path.join('data', name))
+	return pygame.font.Font(fullname, *args)
+
 def load_image(name, colorkey=None):
-	fullname = os.path.join('data', name)
+	fullname = resource_path(os.path.join('data', name))
 	try:
 		image = pygame.image.load(fullname)
 	except pygame.error, message:
@@ -32,7 +43,7 @@ def load_sound(name):
 		def get_volume(self): return self.volume
 	if not pygame.mixer or not pygame.mixer.get_init():
 		return NoneSound()
-	fullname = os.path.join('data', name)
+	fullname = resource_path(os.path.join('data', name))
 	try:
 		sound = pygame.mixer.Sound(fullname)
 		sound.set_volume(effects_volume)
@@ -44,7 +55,7 @@ def load_sound(name):
 def load_music(name):
 	if not pygame.mixer or not pygame.mixer.get_init():
 		return
-	fullname = os.path.join('data', name)
+	fullname = resource_path(os.path.join('data', name))
 	try:
 		pygame.mixer.music.load(fullname)
 	except pygame.error, message:
