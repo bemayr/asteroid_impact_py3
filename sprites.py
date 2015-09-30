@@ -18,7 +18,7 @@ class Cursor(pygame.sprite.Sprite):
 	def update(self, millis):
 		"move the fist based on the mouse position"
 		pos = pygame.mouse.get_pos()
-		self.rect.center = pos
+		self.rect.center = pos 
 
 class Target(pygame.sprite.Sprite):
 	def __init__(self, diameter=16, left=10, top=10):
@@ -87,7 +87,7 @@ class BasePowerup(pygame.sprite.Sprite):
 		self.diameter = diameter
 		self.rect = pygame.Rect(left, top, diameter, diameter) # likely overwritten in derived class
 
-		self.maxduration = 5.0 # seconds
+		self.maxduration = maxduration # seconds
 		self.active = False
 		self.duration = 0
 		
@@ -211,3 +211,9 @@ class ShieldPowerup(BasePowerup):
 				self.sound_end_started = True
 				self.sound_end.play()
 
+class NonePowerup(BasePowerup):
+	'''This power-up has no effect except delaying the next power-up from spawning'''
+	def __init__(self, duration=10.0):
+		# configure as a circle completely covering the screen so I get picked up as soon as available
+		BasePowerup.__init__(self, diameter=2000, left=0, top=0, maxduration=duration)
+		self.image = None

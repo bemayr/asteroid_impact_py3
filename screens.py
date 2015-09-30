@@ -225,7 +225,9 @@ def make_powerup(powerup_dict):
 		return ShieldPowerup(**powerup_dict)
 	if type == 'slow':
 		return SlowPowerup(**powerup_dict)
-	print 'WARN: Unknown type of powerup in level: ', type
+	if type == 'none':
+		return NonePowerup(**powerup_dict)
+	print 'ERROR: Unknown type of powerup in level: ', type
 
 
 class AsteroidImpactGameplayScreen(GameScreen):
@@ -265,7 +267,9 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		self.powerup = self.powerup_list[0]
 		self.next_powerup_list_index = 1 % len(self.powerup_list)
 		self.mostsprites = pygame.sprite.OrderedUpdates(self.asteroids + [self.cursor, self.target])
-		self.powerupsprites = pygame.sprite.Group(self.powerup)
+		self.powerupsprites = pygame.sprite.Group()
+		if self.powerup.image:
+			self.powerupsprites.add(self.powerup)
 		self.update_status_text()
 
 	def advance_level(self):
@@ -297,11 +301,11 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			# switch to and get ready next one:
 			self.powerup = self.powerup_list[self.next_powerup_list_index]
 			self.powerup.used = False
-			print self.powerup.rect
 			self.powerupsprites.empty()
-			self.powerupsprites.add(self.powerup)
+			if self.powerup.image:
+				self.powerupsprites.add(self.powerup)
 			self.next_powerup_list_index = (1 + self.next_powerup_list_index) % len(self.powerup_list)
-		self.powerupsprites.update(millis)
+		self.powerup.update(millis)
 		
 		# additional game logic:
 		if circularspritesoverlap(self.cursor, self.target):

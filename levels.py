@@ -19,12 +19,19 @@ def get_levels(screenarea):
 				dict(diameter=80, dx=4, dy=3, top=200, left=50),
 				dict(diameter=60, dx=-5, dy=-3, top=120, left=400)],
 			powerup_list = [
+				dict(type='none',duration=1.0),
 				dict(type='shield',diameter=16, left=rnd.randint(0, screenarea.width - 16), top=rnd.randint(0, screenarea.height - 16)),
+				dict(type='none',duration=1.0),
 				dict(type='slow',diameter=16, left=rnd.randint(0, screenarea.width - 16), top=rnd.randint(0, screenarea.height - 16)),
+				dict(type='none',duration=1.0),
 				dict(type='shield',diameter=16, left=rnd.randint(0, screenarea.width - 16), top=rnd.randint(0, screenarea.height - 16)),
+				dict(type='none',duration=1.0),
 				dict(type='slow',diameter=16, left=rnd.randint(0, screenarea.width - 16), top=rnd.randint(0, screenarea.height - 16)),
+				dict(type='none',duration=1.0),
 				dict(type='shield',diameter=16, left=rnd.randint(0, screenarea.width - 16), top=rnd.randint(0, screenarea.height - 16)),	
+				dict(type='none',duration=1.0),
 				dict(type='slow',diameter=16, left=rnd.randint(0, screenarea.width - 16), top=rnd.randint(0, screenarea.height - 16)),
+				dict(type='none',duration=1.0),
 				]
 		),
 		]
