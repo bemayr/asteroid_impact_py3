@@ -198,11 +198,12 @@ class GameOverOverlayScreen(GameScreen):
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
 				raise QuitGame('ESC Pressed')
 			elif event.type == MOUSEBUTTONDOWN:
+				if len(self.screenstack) > 1 and isinstance(self.screenstack[-2], AsteroidImpactGameplayScreen):
+					# reload same level
+					self.screenstack[-2].setup_level()
+				# remove 'game over' screen
 				self.screenstack.pop()
-				if isinstance(self.screenstack[-1], AsteroidImpactGameplayScreen):
-					self.screenstack.pop()
-				# start game over
-				self.screenstack.append(AsteroidImpactGameplayScreen(self.screen, self.screenstack))
+				# add 'click to begin' screen
 				self.screenstack.append(ClickToBeginOverlayScreen(self.screen, self.screenstack))
 			elif event.type is MOUSEBUTTONUP:
 				pass
