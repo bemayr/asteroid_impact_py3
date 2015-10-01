@@ -307,7 +307,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			self.next_powerup_list_index = (1 + self.next_powerup_list_index) % len(self.powerup_list)
 		self.powerup.update(millis)
 		
-		# additional game logic:
+		# Check target collision:
 		if circularspritesoverlap(self.cursor, self.target):
 			# hit. 
 			# todo: increment counter of targets hit
@@ -321,15 +321,8 @@ class AsteroidImpactGameplayScreen(GameScreen):
 				# position for next crystal target:
 				self.target.rect.left = self.target_positions[self.target_index][0]
 				self.target.rect.top = self.target_positions[self.target_index][1]
-		for asteroid in self.asteroids:
-			if circularspritesoverlap(self.cursor, asteroid):
-				# todo: find a cleaner way to have the shield powerup do this work:
-				if not (self.powerup != None and self.powerup.__class__ == ShieldPowerup and self.powerup.active):
-					self.sound_death.play()
-					print 'dead', self.cursor.rect.left, self.cursor.rect.top
-					self.screenstack.append(GameOverOverlayScreen(self.screen, self.screenstack))
-					break
-		# powerups?
+
+		# Check powerup collision
 		if self.powerup != None \
 			and circularspritesoverlap(self.cursor, self.powerup) \
 			and not self.powerup.active \
@@ -338,6 +331,16 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			# TODO: decide where and when to spawn next powerup
 			# how should powerup behavior be implemented?
 			self.powerup.activate(self.cursor, self.asteroids)
+
+		# Check asteroid collision:
+		for asteroid in self.asteroids:
+			if circularspritesoverlap(self.cursor, asteroid):
+				# todo: find a cleaner way to have the shield powerup do this work:
+				if not (self.powerup != None and self.powerup.__class__ == ShieldPowerup and self.powerup.active):
+					self.sound_death.play()
+					print 'dead', self.cursor.rect.left, self.cursor.rect.top
+					self.screenstack.append(GameOverOverlayScreen(self.screen, self.screenstack))
+					break
 		
 		self.update_status_text()
 
