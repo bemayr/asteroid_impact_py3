@@ -236,11 +236,13 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		GameScreen.__init__(self, screen, screenstack)
 		self.blackbackground = pygame.Surface(self.screen.get_size())
 		self.blackbackground = self.blackbackground.convert()
-		self.blackbackground.fill((127, 250, 16))
+		self.blackbackground.fill((0, 0, 0))
 		
 		self.gamebackground = pygame.Surface(virtualdisplay.screenarea.size)
 		self.gamebackground = self.gamebackground.convert()
 		self.gamebackground.fill((250, 250, 250))
+		# draw gamebackground on blackbackground to only have to draw black/game once per frame:
+		self.blackbackground.blit(self.gamebackground, virtualdisplay.screenarea.topleft)
 
 		self.statusfont = load_font('freesansbold.ttf', 36)
 		self.statustext = self.statusfont.render('Placeholder Art', 1, (10, 10, 10))
@@ -250,7 +252,6 @@ class AsteroidImpactGameplayScreen(GameScreen):
 
 		#Display The Background
 		self.screen.blit(self.blackbackground, (0,0))
-		self.screen.blit(self.gamebackground, virtualdisplay.screenarea.topleft)
 		self.level_list = levels.get_levels()
 		if len(self.level_list) == 0:
 			print 'ERROR: Level list is empty'
@@ -350,7 +351,6 @@ class AsteroidImpactGameplayScreen(GameScreen):
 
 	def draw(self):
 		self.screen.blit(self.blackbackground, (0,0))
-		self.screen.blit(self.gamebackground, virtualdisplay.screenarea.topleft)
 		self.screen.blit(self.statustext, self.statustextrect)
 		self.mostsprites.draw(self.screen)
 		self.powerupsprites.draw(self.screen)
