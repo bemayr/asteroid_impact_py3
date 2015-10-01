@@ -2,6 +2,7 @@ import random
 from sprites import *
 import levels
 from pygame.locals import *
+import virtualdisplay
 
 # screens.py
 class QuitGame(Exception):
@@ -69,11 +70,12 @@ class AsteroidImpactInstructionsScreen(GameScreen):
 		s = Asteroid(diameter=16)
 		s.rect.topleft = (60, 180)
 		self.sprites.add(s)
-		asteroidbounds = pygame.Rect(60, 200, 480-60-60, 80)
+		asteroidscreenbounds = pygame.Rect(60, 200, 480-60-60, 80)
+		asteroidgamebounds = virtualdisplay.gamerect_from_screenrect(asteroidscreenbounds)
 		self.asteroids = pygame.sprite.Group([
-			Asteroid(diameter=32,dx=1.5,dy=1.0,top=asteroidbounds.top,left=asteroidbounds.left,area=asteroidbounds),
-			Asteroid(diameter=40,dx=2.5,dy=-1,top=asteroidbounds.top+10,left=asteroidbounds.left+200,area=asteroidbounds),
-			Asteroid(diameter=20,dx=-1,dy=-3,top=asteroidbounds.top+20,left=asteroidbounds.left+300,area=asteroidbounds)])
+			Asteroid(diameter=64,dx=3,dy=2.0,top=asteroidgamebounds.top,left=asteroidgamebounds.left,area=asteroidgamebounds),
+			Asteroid(diameter=80,dx=5,dy=-2,top=asteroidgamebounds.top+20,left=asteroidgamebounds.left+400,area=asteroidgamebounds),
+			Asteroid(diameter=40,dx=-2,dy=-6,top=asteroidgamebounds.top+40,left=asteroidgamebounds.left+600,area=asteroidgamebounds)])
 		self.textsprites.append(TextSprite(
 			self.font.render("Avoid the bouncing asteroids. Hit one and it's game over.", 1, black),
 			left=120, top=180))
@@ -123,7 +125,6 @@ class AsteroidImpactInstructionsScreen(GameScreen):
 		# update asteroid positions
 		for asteroid in self.asteroids:
 			asteroid.update(millis)
-
 
 class ClickToBeginOverlayScreen(GameScreen):
 	def __init__(self, screen, gamescreenstack):
@@ -209,12 +210,12 @@ class GameOverOverlayScreen(GameScreen):
 				pass
 
 def circularspritesoverlap(a, b):
-	x1 = a.rect.centerx
-	y1 = a.rect.centery
-	d1 = a.diameter
-	x2 = b.rect.centerx
-	y2 = b.rect.centery
-	d2 = b.diameter
+	x1 = a.gamerect.centerx
+	y1 = a.gamerect.centery
+	d1 = a.gamerect.width
+	x2 = b.gamerect.centerx
+	y2 = b.gamerect.centery
+	d2 = b.gamerect.width
 	# x1, y1, d1, x2, y2, d2
 	return ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1)) < (.25*(d1 + d2)*(d1 + d2))
 
@@ -230,30 +231,32 @@ def make_powerup(powerup_dict):
 		return NonePowerup(**powerup_dict)
 	print 'ERROR: Unknown type of powerup in level: ', type
 
-
 class AsteroidImpactGameplayScreen(GameScreen):
 	def __init__(self, screen, screenstack):
 		GameScreen.__init__(self, screen, screenstack)
-		self.screenarea = self.screen.get_rect()
-		self.background = pygame.Surface(screen.get_size())
-		self.background = self.background.convert()
-		self.background.fill((250, 250, 250))
+		self.blackbackground = pygame.Surface(self.screen.get_size())
+		self.blackbackground = self.blackbackground.convert()
+		self.blackbackground.fill((127, 250, 16))
+		
+		self.gamebackground = pygame.Surface(virtualdisplay.screenarea.size)
+		self.gamebackground = self.gamebackground.convert()
+		self.gamebackground.fill((250, 250, 250))
 
 		self.statusfont = load_font('freesansbold.ttf', 36)
 		self.statustext = self.statusfont.render('Placeholder Art', 1, (10, 10, 10))
-		self.statustextrect = self.statustext.get_rect(centerx=self.background.get_width()/2)
+		self.statustextrect = self.statustext.get_rect(centerx=virtualdisplay.screenarea.centerx,top=virtualdisplay.screenarea.top)
 			
 		self.sound_death = load_sound('DeathFlash.wav')
 
 		#Display The Background
-		self.screen.blit(self.background, (0, 0))
-		self.level_list = levels.get_levels(self.screenarea)
+		self.screen.blit(self.blackbackground, (0,0))
+		self.screen.blit(self.gamebackground, virtualdisplay.screenarea.topleft)
+		self.level_list = levels.get_levels()
 		if len(self.level_list) == 0:
 			print 'ERROR: Level list is empty'
 			raise QuitGame
 		self.level_index = 0
 		self.setup_level()
-	
 		
 	def setup_level(self):
 		leveldetails = self.level_list[self.level_index]
@@ -262,7 +265,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		self.cursor = Cursor()
 		self.target_positions = leveldetails['target_positions']
 		self.target_index = 0
-		self.target = Target(diameter=16, left=self.target_positions[0][0], top=self.target_positions[0][1])
+		self.target = Target(diameter=32, left=self.target_positions[0][0], top=self.target_positions[0][1])
 		self.asteroids = [Asteroid(**d) for d in leveldetails['asteroids']]
 		self.powerup_list = [make_powerup(d) for d in leveldetails['powerup_list']]
 		self.powerup = self.powerup_list[0]
@@ -281,8 +284,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		# todo: update the text
 		statusblurb = '%d/%d collected %2.2f seconds'%(self.target_index, len(self.target_positions), self.levelmillis / 1000.)
 		self.statustext = self.statusfont.render(statusblurb, 1, (10, 10, 10))
-		self.statustextrect = self.statustext.get_rect(centerx=self.background.get_width()/2)
-
+		self.statustextrect = self.statustext.get_rect(centerx=virtualdisplay.screenarea.centerx,top=virtualdisplay.screenarea.top)
 
 	def update(self, millis):
 		self.levelmillis += millis
@@ -320,8 +322,9 @@ class AsteroidImpactGameplayScreen(GameScreen):
 				self.screenstack.append(LevelCompletedOverlayScreen(self.screen, self.screenstack))
 			else:
 				# position for next crystal target:
-				self.target.rect.left = self.target_positions[self.target_index][0]
-				self.target.rect.top = self.target_positions[self.target_index][1]
+				self.target.gamerect.left = self.target_positions[self.target_index][0]
+				self.target.gamerect.top = self.target_positions[self.target_index][1]
+				self.target.update_rect()
 
 		# Check powerup collision
 		if self.powerup != None \
@@ -346,7 +349,8 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		self.update_status_text()
 
 	def draw(self):
-		self.screen.blit(self.background, (0, 0))
+		self.screen.blit(self.blackbackground, (0,0))
+		self.screen.blit(self.gamebackground, virtualdisplay.screenarea.topleft)
 		self.screen.blit(self.statustext, self.statustextrect)
 		self.mostsprites.draw(self.screen)
 		self.powerupsprites.draw(self.screen)

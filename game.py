@@ -41,7 +41,7 @@ def main():
 	if pygame.mixer:
 		pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
 	pygame.init()
-	screen = pygame.display.set_mode((640, 480))
+	screen = pygame.display.set_mode((640+100, 480+100))
 	pygame.display.set_caption('Asteroid Impact')
 	pygame.mouse.set_visible(0)
 	# capture mouse

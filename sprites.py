@@ -1,37 +1,60 @@
 import pygame
 from resources import *
+import virtualdisplay
 import math
 
-#classes for our game objects
-class Cursor(pygame.sprite.Sprite):
+class VirtualGameSprite(pygame.sprite.Sprite):
+	'''Sprite with higher resolution game position/size (gamerect) than on-screen position/size (rect)'''
 	def __init__(self):
 		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
+		self.gamerect = pygame.Rect(0,0,1,1)
+	def update_rect(self):
+		self.rect = virtualdisplay.screenrect_from_gamerect(self.gamerect)
+		
+
+#classes for our game objects
+class Cursor(VirtualGameSprite):
+	def __init__(self):
+		VirtualGameSprite.__init__(self) #call Sprite initializer
 		self.image, self.rect = load_image('cursor.png', -1)
 		self.image = self.image.convert_alpha()
-		self.diameter = 16
-		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
+		self.gamediameter = 32
+		# find screen diameter
+		self.gamerect = pygame.Rect(0,0,self.gamediameter,self.gamediameter)
+		self.update_rect()
+		self.image = pygame.transform.smoothscale(self.image, (self.rect.width, self.rect.height))
 		self.image.convert()
-		self.rect.width = self.diameter
-		self.rect.height = self.diameter
-		self.punching = 0
 
 	def update(self, millis):
-		"move the fist based on the mouse position"
+		"move the cursor based on the mouse position"
 		pos = pygame.mouse.get_pos()
-		self.rect.center = pos 
+		
+		# if the cursor is outside of the game area, move it back
+		if not virtualdisplay.screenarea.collidepoint(pos):
+			pos = (
+				max(
+					min(pos[0], virtualdisplay.screenarea.right), 
+					virtualdisplay.screenarea.left),
+				max(
+					min(pos[1], virtualdisplay.screenarea.bottom), 
+					virtualdisplay.screenarea.top))
+			pygame.mouse.set_pos(pos)
+		
+		game_pos = virtualdisplay.gamepoint_from_screenpoint(pos)
+		self.gamerect.center = game_pos
+		self.update_rect()
 
-class Target(pygame.sprite.Sprite):
-	def __init__(self, diameter=16, left=10, top=10):
-		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
+
+class Target(VirtualGameSprite):
+	def __init__(self, diameter=64, left=20, top=20):
+		VirtualGameSprite.__init__(self) #call Sprite initializer
 		self.image, self.rect = load_image('target.png', -1)
 		self.image = self.image.convert_alpha()
-		self.diameter = diameter
-		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
+		self.gamediameter = diameter
+		self.gamerect = pygame.Rect(left, top, diameter, diameter)
+		self.update_rect()
+		self.image = pygame.transform.smoothscale(self.image, (self.rect.width, self.rect.height))
 		self.image.convert()
-		self.rect.width = self.diameter
-		self.rect.height = self.diameter
-		self.rect.top = top
-		self.rect.left = left
 		self.pickup_sound = load_sound('ring_inventory.wav')
 	
 	def pickedup(self):
@@ -42,50 +65,50 @@ class Target(pygame.sprite.Sprite):
 		# hit test done in AsteroidImpactGameplayScreen
 		pass
 
-class Asteroid(pygame.sprite.Sprite):
-	def __init__(self, diameter=100, dx=2, dy=5, left=10, top=10, area=None):
-		pygame.sprite.Sprite.__init__(self) #call Sprite intializer
+class Asteroid(VirtualGameSprite):
+	def __init__(self, diameter=200, dx=4, dy=10, left=20, top=20, area=None):
+		VirtualGameSprite.__init__(self) #call Sprite intializer
 		self.image, self.rect = load_image('asteroid.png', -1)
 		self.image = self.image.convert_alpha()
-		self.diameter = diameter
-		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
+		self.gamediameter = diameter
+		self.gamerect = pygame.Rect(left, top, diameter, diameter)
+		self.update_rect()
+		self.image = pygame.transform.smoothscale(self.image, (self.rect.width, self.rect.height))
 		self.image.convert()
-		self.rect.width = self.diameter
-		self.rect.height = self.diameter
-		screen = pygame.display.get_surface()
-		self.area = area
-		if not self.area:
-			self.area = screen.get_rect()
-		self.rect.top = top
-		self.rect.left = left
+		if area:
+			self.gamearea = area
+		else:
+			self.gamearea = virtualdisplay.gamearea
 		# rect uses integer positions but I need to handle fractional pixel/frame speeds.
 		# store float x/y positions here:
-		self.topfloat = float(top)
-		self.leftfloat = float(left)
+		self.gametopfloat = float(top)
+		self.gameleftfloat = float(left)
 		self.dx = dx
 		self.dy = dy
 
 	def update(self, millis):
 		# bounce by setting sign of x or y speed if off of corresponding side of screen
-		if self.rect.left < self.area.left:
+		if self.gamerect.left < self.gamearea.left:
 			self.dx = abs(self.dx)
-		if  self.rect.right > self.area.right:
+		if  self.gamerect.right > self.gamearea.right:
 			self.dx = -abs(self.dx)
-		if self.rect.top < self.area.top:
+		if self.gamerect.top < self.gamearea.top:
 			self.dy = abs(self.dy)
-		if self.rect.bottom > self.area.bottom:
+		if self.gamerect.bottom > self.gamearea.bottom:
 			self.dy = -abs(self.dy)
 			
-		self.leftfloat += self.dx
-		self.topfloat += self.dy
- 		self.rect.left = self.leftfloat
- 		self.rect.top = self.topfloat
+		self.gameleftfloat += self.dx
+		self.gametopfloat += self.dy
+ 		self.gamerect.left = self.gameleftfloat
+ 		self.gamerect.top = self.gametopfloat
+ 		self.update_rect()
 
-class BasePowerup(pygame.sprite.Sprite):
+class BasePowerup(VirtualGameSprite):
 	def __init__(self, diameter=16, left=50, top=50, maxduration=5.0):
-		pygame.sprite.Sprite.__init__(self) #call Sprite initializer
-		self.diameter = diameter
-		self.rect = pygame.Rect(left, top, diameter, diameter) # likely overwritten in derived class
+		VirtualGameSprite.__init__(self) #call Sprite initializer
+		self.gamediameter = diameter
+		self.gamerect = pygame.Rect(left, top, diameter, diameter) # likely overwritten in derived class
+		self.update_rect()
 
 		self.maxduration = maxduration # seconds
 		self.active = False
@@ -102,27 +125,26 @@ class BasePowerup(pygame.sprite.Sprite):
 				self.deactivate()
 
 	def activate(self, *args):
-		self.oldrect = self.rect.copy()
+		self.oldgamerect = self.gamerect.copy()
 		self.active = True
 		self.duration = 0
 		self.used = False
 		
 	def deactivate(self, *args):
 		self.active = False
-		self.rect = self.oldrect
+		self.gamerect = self.oldgamerect
+		self.update_rect()
 		self.used = True
 		self.kill()
 
 class SlowPowerup(BasePowerup):
-	def __init__(self, diameter=16, left=50, top=50):
+	def __init__(self, diameter=32, left=100, top=100):
 		BasePowerup.__init__(self, diameter=diameter, left=left, top=top, maxduration=5.0)
 		self.image, self.rect = load_image('icecube.png', -1)
 		self.image = self.image.convert_alpha()
-		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
-		self.rect.width = self.diameter
-		self.rect.height = self.diameter
-		self.rect.left = left
-		self.rect.top = top
+		self.gamerect = pygame.Rect(left, top, diameter, diameter)
+		self.update_rect()
+		self.image = pygame.transform.smoothscale(self.image, (self.rect.width, self.rect.height))
 		self.sound_begin = load_sound('slow start.wav')
 		self.sound_end = load_sound('slow end.wav')
 		# these let me start the ending sound to end overlapping when the effect ends:
@@ -153,8 +175,9 @@ class SlowPowerup(BasePowerup):
 			asteroid.dy *= speedfactor
 
 		# disappear offscreen
-		self.rect.top = -100
-		self.rect.left = -100
+		self.gamerect.top = -10000
+		self.gamerect.left = -10000
+		self.update_rect()
 
 		self.sound_begin.play()
 
@@ -171,15 +194,13 @@ class SlowPowerup(BasePowerup):
 			asteroid.dy = math.copysign(asteroid.originaldy, asteroid.dy)
 		
 class ShieldPowerup(BasePowerup):
-	def __init__(self, diameter=16, left=40, top=40):
+	def __init__(self, diameter=32, left=80, top=80):
 		BasePowerup.__init__(self, diameter=diameter, left=left, top=top, maxduration=5.0)
 		self.image, self.rect = load_image('shield.png', -1)
 		self.image = self.image.convert_alpha()
-		self.image = pygame.transform.smoothscale(self.image, (self.diameter, self.diameter))
-		self.rect.width = self.diameter
-		self.rect.height = self.diameter
-		self.rect.left = left
-		self.rect.top = top
+		self.gamerect = pygame.Rect(left, top, diameter, diameter)
+		self.update_rect()
+		self.image = pygame.transform.smoothscale(self.image, (self.rect.width, self.rect.height))
 		self.sound_begin = load_sound('shield start.wav')
 		self.sound_end = load_sound('shield end.wav')
 		# these let me start the ending sound to end overlapping when the effect ends:
@@ -199,9 +220,8 @@ class ShieldPowerup(BasePowerup):
 		BasePowerup.update(self, millis)
 		if (self.active):
 			# follow on top of cursor:
-			#pos = pygame.mouse.get_pos()
-			#self.rect.center = pos
-			self.rect = self.cursor.rect
+			self.gamerect.center = self.cursor.gamerect.center
+			self.update_rect()
 
 			# "ignore collisions" logic happens in Game Screen
 
@@ -215,5 +235,5 @@ class NonePowerup(BasePowerup):
 	'''This power-up has no effect except delaying the next power-up from spawning'''
 	def __init__(self, duration=10.0):
 		# configure as a circle completely covering the screen so I get picked up as soon as available
-		BasePowerup.__init__(self, diameter=2000, left=0, top=0, maxduration=duration)
+		BasePowerup.__init__(self, diameter=200000, left=0, top=0, maxduration=duration)
 		self.image = None
