@@ -32,6 +32,12 @@ parser.add_argument('--music-volume', type=float, default=1.0,
 	help='music volume, 1.0 for full')
 parser.add_argument('--effects-volume', type=float, default=1.0,
 	help='sound effects volume, 1.0 for full')
+parser.add_argument('--display-width', type=int, default=640,
+	help='Width of window or full screen mode.')
+parser.add_argument('--display-height', type=int, default=480,
+	help='Height of window or full screen mode.')
+parser.add_argument('--display-mode', choices=['windowed','fullscreen'], default='windowed',
+	help='Whether to run windowed or fullscreen')
 
 def main():
 	args = parser.parse_args()
@@ -41,7 +47,12 @@ def main():
 	if pygame.mixer:
 		pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
 	pygame.init()
-	screen = pygame.display.set_mode((640+100, 480+100))
+	displayflags = 0
+	if args.display_mode == 'fullscreen':
+		displayflags |= pygame.FULLSCREEN
+	screensize = (args.display_width, args.display_height)
+	virtualdisplay.set_screensize(screensize)
+	screen = pygame.display.set_mode(screensize, displayflags)
 	pygame.display.set_caption('Asteroid Impact')
 	pygame.mouse.set_visible(0)
 	# capture mouse
