@@ -32,8 +32,8 @@ def make_level(screenarea, seed=None, num_targets=5, asteroid_count=3, asteroid_
 
 	asteroids = []
 	for i in xrange(asteroid_count):
-		diameter = asteroid_sizes[rnd.randint(0,len(asteroid_sizes)-1)]
-		speed = asteroid_speeds[rnd.randint(0,len(asteroid_speeds)-1)]
+		diameter = rnd.choice(asteroid_sizes)
+		speed = rnd.choice(asteroid_speeds)
 		dx,dy = make_dir(speed, rnd)
 		asteroids.append(dict(
 			diameter=diameter,dx=dx,dy=dy,
@@ -45,7 +45,7 @@ def make_level(screenarea, seed=None, num_targets=5, asteroid_count=3, asteroid_
 	if powerup_count > 0 and len(powerup_types) > 0:
 		for i in xrange(powerup_count):
 			powerup_left,powerup_top=(rnd.randint(0, screenarea.width - 16), rnd.randint(0, screenarea.height - 16))
-			powerup_type = powerup_types[rnd.randint(0,len(powerup_types)-1)]
+			powerup_type = rnd.choice(powerup_types)
 			powerups.append(dict(type=powerup_type,diameter=16,left=powerup_left,top=powerup_top))
 			if powerup_delay > 0.0:
 				powerups.append(dict(type='none', duration=powerup_delay))
