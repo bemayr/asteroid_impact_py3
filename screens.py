@@ -117,7 +117,6 @@ class AsteroidImpactInstructionsScreen(GameScreen):
 				# start the game: 
 				self.screenstack.pop()
 				self.screenstack.append(AsteroidImpactGameplayScreen(self.screen, self.screenstack))
-				self.screenstack.append(ClickToBeginOverlayScreen(self.screen, self.screenstack))
 				pass
 			elif event.type is MOUSEBUTTONUP:
 				pass
@@ -125,33 +124,6 @@ class AsteroidImpactInstructionsScreen(GameScreen):
 		# update asteroid positions
 		for asteroid in self.asteroids:
 			asteroid.update(millis)
-
-class ClickToBeginOverlayScreen(GameScreen):
-	def __init__(self, screen, gamescreenstack):
-		GameScreen.__init__(self, screen, gamescreenstack)
-		self.opaque = False
-		self.screenarea = self.screen.get_rect()
-		self.font = load_font('freesansbold.ttf', 36)
-		self.text = self.font.render("Click To Begin", 1, (250, 10, 10))
-		self.textpos = self.text.get_rect(centerx=self.screenarea.width/2,centery=self.screenarea.height/2)
-
-	def draw(self):
-		self.screen.blit(self.text, self.textpos)
-		pass
-
-	def update(self, millis):
-		for event in pygame.event.get():
-			if event.type == KEYDOWN and event.key == K_ESCAPE:
-				raise QuitGame('ESC Pressed')
-			elif event.type == MOUSEBUTTONDOWN:
-				self.screenstack.pop()
-				pass
-			elif event.type is MOUSEBUTTONUP:
-				pass
-				
-		if len(self.screenstack) > 1 and isinstance(self.screenstack[-2], AsteroidImpactGameplayScreen):
-			# update cursor:
-			self.screenstack[-2].cursor.update(millis)
 
 class LevelCompletedOverlayScreen(GameScreen):
 	def __init__(self, screen, gamescreenstack):
@@ -161,23 +133,31 @@ class LevelCompletedOverlayScreen(GameScreen):
 		self.font = load_font('freesansbold.ttf', 36)
 		self.text = self.font.render("Level Completed", 1, (250, 10, 10))
 		self.textpos = self.text.get_rect(centerx=self.screenarea.width/2,centery=self.screenarea.height/2)
+		self.elapsedmillis = 0
 
 	def draw(self):
 		self.screen.blit(self.text, self.textpos)
 		pass
 
+	def close(self):
+		if len(self.screenstack) > 1 and isinstance(self.screenstack[-2], AsteroidImpactGameplayScreen):
+			# advance to next level
+			self.screenstack[-2].advance_level()
+		# remove 'level completed' screen
+		self.screenstack.pop()
+
 	def update(self, millis):
+		self.elapsedmillis += millis
+		
+		if self.elapsedmillis >= 2000:
+			self.close()
+		
 		for event in pygame.event.get():
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
 				raise QuitGame('ESC Pressed')
 			elif event.type == MOUSEBUTTONDOWN:
-				if len(self.screenstack) > 1 and isinstance(self.screenstack[-2], AsteroidImpactGameplayScreen):
-					# advance to next level
-					self.screenstack[-2].advance_level()
-				# remove 'level completed' screen
-				self.screenstack.pop()
-				# add 'click to begin' screen
-				self.screenstack.append(ClickToBeginOverlayScreen(self.screen, self.screenstack))
+				#self.close()
+				pass
 			elif event.type is MOUSEBUTTONUP:
 				pass
 
@@ -187,27 +167,36 @@ class GameOverOverlayScreen(GameScreen):
 		self.opaque = False
 		self.screenarea = self.screen.get_rect()
 		self.font = load_font('freesansbold.ttf', 36)
-		self.text = self.font.render("Game Over", 1, (250, 10, 10))
+		self.text = self.font.render("You Died!", 1, (250, 10, 10))
 		self.textpos = self.text.get_rect(centerx=self.screenarea.width/2,centery=self.screenarea.height/2)
+		self.elapsedmillis = 0
 
 	def draw(self):
 		self.screen.blit(self.text, self.textpos)
 		pass
 
+	def close(self):
+		if len(self.screenstack) > 1 and isinstance(self.screenstack[-2], AsteroidImpactGameplayScreen):
+			# reload same level
+			self.screenstack[-2].setup_level()
+		# remove 'game over' screen
+		self.screenstack.pop()
+
 	def update(self, millis):
+		self.elapsedmillis += millis
+		
+		if self.elapsedmillis >= 2000:
+			self.close()
+			
 		for event in pygame.event.get():
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
 				raise QuitGame('ESC Pressed')
 			elif event.type == MOUSEBUTTONDOWN:
-				if len(self.screenstack) > 1 and isinstance(self.screenstack[-2], AsteroidImpactGameplayScreen):
-					# reload same level
-					self.screenstack[-2].setup_level()
-				# remove 'game over' screen
-				self.screenstack.pop()
-				# add 'click to begin' screen
-				self.screenstack.append(ClickToBeginOverlayScreen(self.screen, self.screenstack))
+				pass
+				#self.close()
 			elif event.type is MOUSEBUTTONUP:
 				pass
+
 
 def circularspritesoverlap(a, b):
 	x1 = a.gamerect.centerx
@@ -247,6 +236,10 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		self.statusfont = load_font('freesansbold.ttf', 36)
 		self.statustext = self.statusfont.render('Placeholder Art', 1, (10, 10, 10))
 		self.statustextrect = self.statustext.get_rect(centerx=virtualdisplay.screenarea.centerx,top=virtualdisplay.screenarea.top)
+
+		self.noticefont = load_font('freesansbold.ttf', 36)
+		self.noticetext = self.statusfont.render('[]', 1, (250, 10, 10))
+		self.noticetextrect = self.statustext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
 			
 		self.sound_death = load_sound('DeathFlash.wav')
 
@@ -261,7 +254,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		
 	def setup_level(self):
 		leveldetails = self.level_list[self.level_index]
-		self.levelmillis = 0
+		self.levelmillis = -4000 # for the 'get ready' and level countdown
 		
 		self.cursor = Cursor()
 		self.target_positions = leveldetails['target_positions']
@@ -276,6 +269,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		if self.powerup.image:
 			self.powerupsprites.add(self.powerup)
 		self.update_status_text()
+		self.update_notice_text(self.levelmillis, -10000)
 
 	def advance_level(self):
 		self.level_index = (self.level_index + 1) % len(self.level_list)
@@ -286,8 +280,35 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		statusblurb = '%d/%d collected %2.2f seconds'%(self.target_index, len(self.target_positions), self.levelmillis / 1000.)
 		self.statustext = self.statusfont.render(statusblurb, 1, (10, 10, 10))
 		self.statustextrect = self.statustext.get_rect(centerx=virtualdisplay.screenarea.centerx,top=virtualdisplay.screenarea.top)
+		
+	def update_notice_text(self, levelmillis, oldlevelmillis):
+		# Get Ready -
+		# 3 -3500 ... 3500
+		# 2 -2500 ... -1500
+		# 1 -1500 ... -500
+		# Go! -500 ... +500
+		# [none] +500 to death
+		if oldlevelmillis < -5000 and -5000 <= levelmillis:
+			self.noticetext = self.noticefont.render('Get Ready', 1, (250, 10, 10))
+			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
+		if oldlevelmillis < -3000 and -3000 <= levelmillis:
+			self.noticetext = self.noticefont.render('3', 1, (250, 10, 10))
+			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
+		if oldlevelmillis < -2000 and -2000 <= levelmillis:
+			self.noticetext = self.noticefont.render('2', 1, (250, 10, 10))
+			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
+		if oldlevelmillis < -1000 and -1000 <= levelmillis:
+			self.noticetext = self.noticefont.render('1', 1, (250, 10, 10))
+			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
+		if oldlevelmillis < 0 and 0 <= levelmillis:
+			self.noticetext = self.noticefont.render('Go', 1, (250, 10, 10))
+			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
+		if oldlevelmillis < 500 and 500 <= levelmillis:
+			self.noticetext = self.noticefont.render('', 1, (250, 10, 10))
+			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
 
 	def update(self, millis):
+		oldmlevelillis = self.levelmillis
 		self.levelmillis += millis
 		
 		for event in pygame.event.get():
@@ -298,54 +319,62 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			elif event.type is MOUSEBUTTONUP:
 				pass
 
-		self.mostsprites.update(millis)
-		# update powerups
-		# if current power-up has been used completely:
-		if self.powerup.used:
-			# switch to and get ready next one:
-			self.powerup = self.powerup_list[self.next_powerup_list_index]
-			self.powerup.used = False
-			self.powerupsprites.empty()
-			if self.powerup.image:
-				self.powerupsprites.add(self.powerup)
-			self.next_powerup_list_index = (1 + self.next_powerup_list_index) % len(self.powerup_list)
-		self.powerup.update(millis)
+		self.update_notice_text(self.levelmillis, oldmlevelillis)
+		if self.levelmillis < 0:
+			# get ready countdown
+			# only update asteroids, cursor
+			self.mostsprites.update(millis)
+		else:
+			# game is running (countdown to level start is over)
+			self.mostsprites.update(millis)
 		
-		# Check target collision:
-		if circularspritesoverlap(self.cursor, self.target):
-			# hit. 
-			# todo: increment counter of targets hit
-			self.target.pickedup()
-			self.target_index += 1
-			if self.target_index >= len(self.target_positions):
-				# TODO: record level completion duration
-				print 'completed level'
-				self.screenstack.append(LevelCompletedOverlayScreen(self.screen, self.screenstack))
-			else:
-				# position for next crystal target:
-				self.target.gamerect.left = self.target_positions[self.target_index][0]
-				self.target.gamerect.top = self.target_positions[self.target_index][1]
-				self.target.update_rect()
+			# update powerups
+			# if current power-up has been used completely:
+			if self.powerup.used:
+				# switch to and get ready next one:
+				self.powerup = self.powerup_list[self.next_powerup_list_index]
+				self.powerup.used = False
+				self.powerupsprites.empty()
+				if self.powerup.image:
+					self.powerupsprites.add(self.powerup)
+				self.next_powerup_list_index = (1 + self.next_powerup_list_index) % len(self.powerup_list)
+			self.powerup.update(millis)
+		
+			# Check target collision:
+			if circularspritesoverlap(self.cursor, self.target):
+				# hit. 
+				# todo: increment counter of targets hit
+				self.target.pickedup()
+				self.target_index += 1
+				if self.target_index >= len(self.target_positions):
+					# TODO: record level completion duration
+					print 'completed level'
+					self.screenstack.append(LevelCompletedOverlayScreen(self.screen, self.screenstack))
+				else:
+					# position for next crystal target:
+					self.target.gamerect.left = self.target_positions[self.target_index][0]
+					self.target.gamerect.top = self.target_positions[self.target_index][1]
+					self.target.update_rect()
 
-		# Check powerup collision
-		if self.powerup != None \
-			and circularspritesoverlap(self.cursor, self.powerup) \
-			and not self.powerup.active \
-			and not self.powerup.used:
-			print 'hit powerup', self.cursor.rect.left, self.cursor.rect.top, self.powerup
-			# TODO: decide where and when to spawn next powerup
-			# how should powerup behavior be implemented?
-			self.powerup.activate(self.cursor, self.asteroids)
+			# Check powerup collision
+			if self.powerup != None \
+				and circularspritesoverlap(self.cursor, self.powerup) \
+				and not self.powerup.active \
+				and not self.powerup.used:
+				print 'hit powerup', self.cursor.rect.left, self.cursor.rect.top, self.powerup
+				# TODO: decide where and when to spawn next powerup
+				# how should powerup behavior be implemented?
+				self.powerup.activate(self.cursor, self.asteroids)
 
-		# Check asteroid collision:
-		for asteroid in self.asteroids:
-			if circularspritesoverlap(self.cursor, asteroid):
-				# todo: find a cleaner way to have the shield powerup do this work:
-				if not (self.powerup != None and self.powerup.__class__ == ShieldPowerup and self.powerup.active):
-					self.sound_death.play()
-					print 'dead', self.cursor.rect.left, self.cursor.rect.top
-					self.screenstack.append(GameOverOverlayScreen(self.screen, self.screenstack))
-					break
+			# Check asteroid collision:
+			for asteroid in self.asteroids:
+				if circularspritesoverlap(self.cursor, asteroid):
+					# todo: find a cleaner way to have the shield powerup do this work:
+					if not (self.powerup != None and self.powerup.__class__ == ShieldPowerup and self.powerup.active):
+						self.sound_death.play()
+						print 'dead', self.cursor.rect.left, self.cursor.rect.top
+						self.screenstack.append(GameOverOverlayScreen(self.screen, self.screenstack))
+						break
 		
 		self.update_status_text()
 
@@ -354,4 +383,5 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		self.screen.blit(self.statustext, self.statustextrect)
 		self.mostsprites.draw(self.screen)
 		self.powerupsprites.draw(self.screen)
+		self.screen.blit(self.noticetext, self.noticetextrect)
 
