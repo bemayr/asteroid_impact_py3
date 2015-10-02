@@ -1,6 +1,5 @@
 import random
 from sprites import *
-import levels
 from pygame.locals import *
 import virtualdisplay
 
