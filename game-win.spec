@@ -18,6 +18,7 @@ coll = COLLECT(exe,
                a.zipfiles,
                a.datas,
                Tree('data', prefix='data'),
+               Tree('levels', prefix='levels'),
                strip=None,
                upx=True,
                name='game')

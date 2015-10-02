@@ -1,6 +1,8 @@
 from pygame import Rect
 import random
 from virtualdisplay import gamearea
+import argparse
+import json
 
 SMALL_SIZES = [60, 100, 90, 70, 110, 80]
 MEDIUM_SIZES = [110, 120, 150, 120, 140, 130]
@@ -15,7 +17,7 @@ EXTREME_SPEEDS = [36, 40, 40, 44]
 TARGET_SIZE = 32
 
 def make_dir(speed, rnd):
-	'Find dx,dy that work reasonably up to given speed. avoid dx=0 and dy=0'
+	'Find random dx,dy in range [-speed,speed] that avoid pure horizontal and pure vertical movements.'
 	dx = rnd.randint(1, speed)
 	dy = rnd.randint(1, speed)
 	if rnd.randint(0,1) == 1:
@@ -24,12 +26,57 @@ def make_dir(speed, rnd):
 		dy = -dy
 	return (dx, dy)
 
-def make_level(seed=None, num_targets=5, asteroid_count=3, asteroid_sizes=LARGE_SIZES, 
-	asteroid_speeds=SLOW_SPEEDS, powerup_count=10, powerup_delay=1.0, powerup_types=['shield','slow']):
+def make_level(
+	seed=None,
+	target_count=5,
+	asteroid_count=3,
+	asteroid_sizes='large', 
+	asteroid_speeds='slow',
+	powerup_count=10,
+	powerup_delay=1.0, 
+	powerup_types='both'):
+	
+	# convert string args to lists:
+	if asteroid_sizes == 'small':
+		asteroid_sizes = SMALL_SIZES
+	elif asteroid_sizes == 'medium':
+		asteroid_sizes = MEDIUM_SIZES
+	elif asteroid_sizes == 'large':
+		asteroid_sizes = LARGE_SIZES
+	elif asteroid_sizes == 'varied':
+		asteroid_sizes = VARIED_SIZES
+	
+	if type(asteroid_sizes) == str:
+		raise ValueError('asteroid_sizes of unknown string value: "%s"'%asteroid_sizes)
+		
+	if asteroid_speeds == 'slow':
+		asteroid_speeds = SLOW_SPEEDS
+	elif asteroid_speeds == 'medium':
+		asteroid_speeds = MEDIUM_SPEEDS
+	elif asteroid_speeds == 'fast':
+		asteroid_speeds = FAST_SPEEDS
+	elif asteroid_speeds == 'extreme':
+		asteroid_speeds = EXTREME_SPEEDS
+	
+	if type(asteroid_speeds) == str:
+		raise ValueError('asteroid_speeds of unknown string value: "%s"'%asteroid_speeds)
+
+	if powerup_types == 'shield':
+		powerup_types = ['shield']
+	if powerup_types == 'slow':
+		powerup_types = ['slow']
+	if powerup_types == 'both':
+		powerup_types = ['shield','slow']
+	if powerup_types == 'none':
+		powerup_types = ['none']
+	
+	if type(powerup_types) == str:
+		raise ValueError('powerup_types of unknown string value: "%s"'%powerup_types)
+	
 	rnd = random.Random(seed)
 	level = {}
 	target_positions = []
-	for i in xrange(num_targets):
+	for i in xrange(target_count):
 		target_positions.append((rnd.randint(0, gamearea.width - TARGET_SIZE), rnd.randint(0, gamearea.height - TARGET_SIZE)))
 	level['target_positions'] = target_positions
 
@@ -127,3 +174,39 @@ def get_levels():
 				]
 		),
 		]
+
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser(description='Create Asteroid Impact level.')
+	parser.add_argument('--seed', type=int, default=None,
+		help='Random number seed. If none supplied will use current time.')
+	parser.add_argument('--target-count', type=int, default=5,
+		help='Number of crystals to pick up.')
+	parser.add_argument('--asteroid-count', type=int, default=5,
+		help='Number of asteroids to avoid.')
+	parser.add_argument('--asteroid-sizes', choices=['small','medium','large','varied'], default='large',
+		help='Approximate size of asteroids.')
+	parser.add_argument('--asteroid-speeds', choices=['slow','medium','fast','extreme'], default='slow',
+		help='Approximate speed of asteroids.')
+	parser.add_argument('--powerup-count', type=int, default=5,
+		help='Number of asteroids to avoid.')
+	parser.add_argument('--powerup-delay', type=float, default=1.0,
+		help='Delay in seconds after powerup is used before next one becomes available.')
+	parser.add_argument('--powerup-types', choices=['shield','slow','all','none'], default='both',
+		help='Types of powerups that are in level.')
+		
+	args = parser.parse_args()
+
+	level = make_level(
+		seed = args.seed,
+		target_count=args.target_count,
+		asteroid_count=args.asteroid_count,
+		asteroid_sizes=args.asteroid_sizes, 
+		asteroid_speeds=args.asteroid_speeds,
+		powerup_count=args.powerup_count,
+		powerup_delay=args.powerup_delay, 
+		powerup_types=args.powerup_types)
+		
+	print json.dumps(level)
+
+	# pretty printing:
+	#print json.dumps(level, sort_keys=True, indent=4, separators=(',',': '))

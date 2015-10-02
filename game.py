@@ -17,8 +17,11 @@ from __future__ import absolute_import, division
 
 #Import Modules
 import argparse
+from os import path
+import json
 import pygame
 from pygame.locals import *
+
 
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
@@ -38,11 +41,40 @@ parser.add_argument('--display-height', type=int, default=480,
 	help='Height of window or full screen mode.')
 parser.add_argument('--display-mode', choices=['windowed','fullscreen'], default='windowed',
 	help='Whether to run windowed or fullscreen')
+parser.add_argument('--levels-json', type=str, default=None,
+	help='levellist.json file listing all levels to complete.')
+
+def load_levels(dir, levellistfile):
+	# load level list
+	with open(path.join(dir, levellistfile)) as f:
+		levellist = json.load(f)
+	
+	# load all levels in list
+	levels = []
+	for levelfile in levellist['levels']:
+		with open(path.join(dir, levelfile)) as f:
+			levels.append(json.load(f))
+	
+	# todo: validate levels?
+
+	return levels
+
 
 def main():
 	args = parser.parse_args()
 	resources.music_volume = args.music_volume
 	resources.effects_volume = args.effects_volume
+	
+	# load levels
+	if args.levels_json != None:
+		if not path.exists(args.levels_json):
+			print 'Error: Could not find file at "%s"'%args.levels_json
+			return
+		levelsabspath = os.path.abspath(args.levels_json)
+		levelsdir,levelsfilename = os.path.split(levelsabspath)
+		levellist = load_levels(levelsdir, levelsfilename)
+	else:
+		levellist = load_levels('levels', 'standardlevels.json')
 	
 	if pygame.mixer:
 		pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
@@ -81,11 +113,16 @@ def main():
 			if event.type == QUIT:
 				return
 		
+		# update the topmost screen:
 		try:
 			gamescreenstack[-1].update(millis)
 		except QuitGame as e:
 			print e
 			return
+
+		if len(gamescreenstack) == 0:
+			# Switch to gameplay
+			gamescreenstack.append(AsteroidImpactGameplayScreen(screen, gamescreenstack, levellist))
 
 		# draw topmost opaque screen and everything above it
 		topopaquescreenindex = -1

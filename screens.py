@@ -116,8 +116,7 @@ class AsteroidImpactInstructionsScreen(GameScreen):
 				pygame.mouse.set_pos([self.screenarea.centerx, self.screenarea.centery])
 				# start the game: 
 				self.screenstack.pop()
-				self.screenstack.append(AsteroidImpactGameplayScreen(self.screen, self.screenstack))
-				pass
+				# game.py will switch to gameplay
 			elif event.type is MOUSEBUTTONUP:
 				pass
 		
@@ -221,7 +220,7 @@ def make_powerup(powerup_dict):
 	print 'ERROR: Unknown type of powerup in level: ', type
 
 class AsteroidImpactGameplayScreen(GameScreen):
-	def __init__(self, screen, screenstack):
+	def __init__(self, screen, screenstack, levellist):
 		GameScreen.__init__(self, screen, screenstack)
 		self.blackbackground = pygame.Surface(self.screen.get_size())
 		self.blackbackground = self.blackbackground.convert()
@@ -245,7 +244,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 
 		#Display The Background
 		self.screen.blit(self.blackbackground, (0,0))
-		self.level_list = levels.get_levels()
+		self.level_list = levellist
 		if len(self.level_list) == 0:
 			print 'ERROR: Level list is empty'
 			raise QuitGame
