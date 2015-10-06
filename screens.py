@@ -15,8 +15,9 @@ class GameScreen():
 		self.screen = screen
 		self.screenstack = screenstack
 		self.opaque = True
+		self.name = self.__class__.__name__
 		
-	def update(self, millis):
+	def update(self, millis, logrowdetails):
 		pass
 	
 	def draw(self):
@@ -34,6 +35,7 @@ class TextSprite:
 class AsteroidImpactInstructionsScreen(GameScreen):
 	def __init__(self, screen, gamescreenstack):
 		GameScreen.__init__(self, screen, gamescreenstack)
+		self.name = 'instructions'
 		self.opaque = True
 		self.screenarea = self.screen.get_rect()
 
@@ -106,14 +108,14 @@ class AsteroidImpactInstructionsScreen(GameScreen):
 		self.sprites.draw(self.screen)
 		self.asteroids.draw(self.screen)
 
-	def update(self, millis):
+	def update(self, millis, logrowdetails):
 		for event in pygame.event.get():
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
 				raise QuitGame('ESC Pressed')
 			elif event.type == MOUSEBUTTONDOWN:
 				# position cursor at the center
 				pygame.mouse.set_pos([self.screenarea.centerx, self.screenarea.centery])
-				# start the game: 
+				# end the instructions screen:
 				self.screenstack.pop()
 				# game.py will switch to gameplay
 			elif event.type is MOUSEBUTTONUP:
@@ -126,6 +128,7 @@ class AsteroidImpactInstructionsScreen(GameScreen):
 class LevelCompletedOverlayScreen(GameScreen):
 	def __init__(self, screen, gamescreenstack):
 		GameScreen.__init__(self, screen, gamescreenstack)
+		self.name = 'level_complete'
 		self.opaque = False
 		self.screenarea = self.screen.get_rect()
 		self.font = load_font('freesansbold.ttf', 36)
@@ -144,7 +147,7 @@ class LevelCompletedOverlayScreen(GameScreen):
 		# remove 'level completed' screen
 		self.screenstack.pop()
 
-	def update(self, millis):
+	def update(self, millis, logrowdetails):
 		self.elapsedmillis += millis
 		
 		if self.elapsedmillis >= 2000:
@@ -162,6 +165,7 @@ class LevelCompletedOverlayScreen(GameScreen):
 class GameOverOverlayScreen(GameScreen):
 	def __init__(self, screen, gamescreenstack):
 		GameScreen.__init__(self, screen, gamescreenstack)
+		self.name = 'game_over'
 		self.opaque = False
 		self.screenarea = self.screen.get_rect()
 		self.font = load_font('freesansbold.ttf', 36)
@@ -180,7 +184,7 @@ class GameOverOverlayScreen(GameScreen):
 		# remove 'game over' screen
 		self.screenstack.pop()
 
-	def update(self, millis):
+	def update(self, millis, logrowdetails):
 		self.elapsedmillis += millis
 		
 		if self.elapsedmillis >= 2000:
@@ -221,6 +225,7 @@ def make_powerup(powerup_dict):
 class AsteroidImpactGameplayScreen(GameScreen):
 	def __init__(self, screen, screenstack, levellist):
 		GameScreen.__init__(self, screen, screenstack)
+		self.name = 'gameplay'
 		self.blackbackground = pygame.Surface(self.screen.get_size())
 		self.blackbackground = self.blackbackground.convert()
 		self.blackbackground.fill((0, 0, 0))
@@ -248,11 +253,12 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			print 'ERROR: Level list is empty'
 			raise QuitGame
 		self.level_index = 0
+		self.level_attempt = -1
 		self.setup_level()
 		
 	def setup_level(self):
 		leveldetails = self.level_list[self.level_index]
-		self.levelmillis = -4000 # for the 'get ready' and level countdown
+		self.level_millis = -4000 # for the 'get ready' and level countdown
 		
 		self.cursor = Cursor()
 		self.target_positions = leveldetails['target_positions']
@@ -267,47 +273,51 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		if self.powerup.image:
 			self.powerupsprites.add(self.powerup)
 		self.update_status_text()
-		self.update_notice_text(self.levelmillis, -10000)
+		self.update_notice_text(self.level_millis, -10000)
+		self.level_attempt += 1
 
 	def advance_level(self):
 		self.level_index = (self.level_index + 1) % len(self.level_list)
+		self.level_attempt = -1
 		self.setup_level()
 	
 	def update_status_text(self):
 		# todo: update the text
-		statusblurb = '%d/%d collected %2.2f seconds'%(self.target_index, len(self.target_positions), self.levelmillis / 1000.)
+		statusblurb = '%d/%d collected %2.2f seconds'%(self.target_index, len(self.target_positions), self.level_millis / 1000.)
 		self.statustext = self.statusfont.render(statusblurb, 1, (10, 10, 10))
 		self.statustextrect = self.statustext.get_rect(centerx=virtualdisplay.screenarea.centerx,top=virtualdisplay.screenarea.top)
 		
-	def update_notice_text(self, levelmillis, oldlevelmillis):
+	def update_notice_text(self, level_millis, oldlevel_millis):
 		# Get Ready -
 		# 3 -3500 ... 3500
 		# 2 -2500 ... -1500
 		# 1 -1500 ... -500
 		# Go! -500 ... +500
 		# [none] +500 to death
-		if oldlevelmillis < -5000 and -5000 <= levelmillis:
+		if oldlevel_millis < -5000 and -5000 <= level_millis:
 			self.noticetext = self.noticefont.render('Get Ready', 1, (250, 10, 10))
 			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
-		if oldlevelmillis < -3000 and -3000 <= levelmillis:
+		if oldlevel_millis < -3000 and -3000 <= level_millis:
 			self.noticetext = self.noticefont.render('3', 1, (250, 10, 10))
 			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
-		if oldlevelmillis < -2000 and -2000 <= levelmillis:
+		if oldlevel_millis < -2000 and -2000 <= level_millis:
 			self.noticetext = self.noticefont.render('2', 1, (250, 10, 10))
 			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
-		if oldlevelmillis < -1000 and -1000 <= levelmillis:
+		if oldlevel_millis < -1000 and -1000 <= level_millis:
 			self.noticetext = self.noticefont.render('1', 1, (250, 10, 10))
 			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
-		if oldlevelmillis < 0 and 0 <= levelmillis:
+		if oldlevel_millis < 0 and 0 <= level_millis:
 			self.noticetext = self.noticefont.render('Go', 1, (250, 10, 10))
 			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
-		if oldlevelmillis < 500 and 500 <= levelmillis:
+		if oldlevel_millis < 500 and 500 <= level_millis:
 			self.noticetext = self.noticefont.render('', 1, (250, 10, 10))
 			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
 
-	def update(self, millis):
-		oldmlevelillis = self.levelmillis
-		self.levelmillis += millis
+	def update(self, millis, logrowdetails):
+		oldmlevelillis = self.level_millis
+		self.level_millis += millis
+		
+		levelstate = 'countdown' if self.level_millis < 0 else 'playing'
 		
 		for event in pygame.event.get():
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
@@ -317,8 +327,8 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			elif event.type is MOUSEBUTTONUP:
 				pass
 
-		self.update_notice_text(self.levelmillis, oldmlevelillis)
-		if self.levelmillis < 0:
+		self.update_notice_text(self.level_millis, oldmlevelillis)
+		if self.level_millis < 0:
 			# get ready countdown
 			# only update asteroids, cursor
 			self.mostsprites.update(millis)
@@ -347,6 +357,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 				if self.target_index >= len(self.target_positions):
 					# TODO: record level completion duration
 					print 'completed level'
+					levelstate = 'completed'
 					self.screenstack.append(LevelCompletedOverlayScreen(self.screen, self.screenstack))
 				else:
 					# position for next crystal target:
@@ -371,10 +382,34 @@ class AsteroidImpactGameplayScreen(GameScreen):
 					if not (self.powerup != None and self.powerup.__class__ == ShieldPowerup and self.powerup.active):
 						self.sound_death.play()
 						print 'dead', self.cursor.rect.left, self.cursor.rect.top
+						levelstate = 'dead'
 						self.screenstack.append(GameOverOverlayScreen(self.screen, self.screenstack))
 						break
 		
 		self.update_status_text()
+		logrowdetails['level_millis'] = self.level_millis
+		logrowdetails['level_index'] = self.level_index
+		logrowdetails['level_attempt'] = self.level_attempt
+		logrowdetails['level_state'] = levelstate
+
+		logrowdetails['target_index'] = self.target_index
+		logrowdetails['target_x'] = self.target.gamerect.centerx
+		logrowdetails['target_y'] = self.target.gamerect.centery
+
+		#active powerup (none, shield, slow)
+		logrowdetails['active_powerup'] = 'none'
+		if self.powerup and self.powerup.active:
+			logrowdetails['active_powerup'] = self.powerup.type
+
+		# on-screen powerup (these get weird when active)
+		logrowdetails['powerup_x'] = self.powerup.gamerect.centerx
+		logrowdetails['powerup_x'] = self.powerup.gamerect.centerx
+		logrowdetails['powerup_diameter'] = self.powerup.gamediameter
+		logrowdetails['powerup_type'] = self.powerup.type
+
+		logrowdetails['cursor_x'] = self.cursor.gamerect.centerx
+		logrowdetails['cursor_y'] = self.cursor.gamerect.centery
+		
 
 	def draw(self):
 		self.screen.blit(self.blackbackground, (0,0))

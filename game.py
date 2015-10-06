@@ -28,6 +28,7 @@ if not pygame.mixer: print 'Warning, sound disabled'
 
 from screens import *
 import resources
+from logger import AsteroidLogger
 
 # command-line arguments:
 parser = argparse.ArgumentParser(description='Run Asteroid Impact game.')
@@ -44,98 +45,167 @@ parser.add_argument('--display-mode', choices=['windowed','fullscreen'], default
 parser.add_argument('--levels-json', type=str, default=None,
 	help='levellist.json file listing all levels to complete.')
 
-def load_levels(dir, levellistfile):
-	# load level list
-	with open(path.join(dir, levellistfile)) as f:
-		levellist = json.load(f)
-	
-	# load all levels in list
-	levels = []
-	for levelfile in levellist['levels']:
-		with open(path.join(dir, levelfile)) as f:
-			levels.append(json.load(f))
-	
-	# todo: validate levels?
 
-	return levels
+class GameModeManager:
+	'''follow the instructions to switch between game screens, and levels
+	Rather than specifying a single level list, specify a file that has a list of entries where each entry specifies the following:
+	Action: Either Instructions, Game, or Black Screen
+	Levels: For the game, the list of level files to play. The player will progress (or not) through them in order, and after completing the last level will start again at the beginning. Dying will restart the current level.
+	Duration: After this many seconds move to the next step, regardless of what the player is doing now.
+	'''
+	def __init__(self, args):
+		# TODO: look for this on the command-line:
+		self.gamesteps = [
+			dict(action='instructions',
+				duration=5.0),
+			dict(action='game',
+				levels='levels/standardlevels.json',
+				duration=None)]
+		
+			# load levels
+		if args.levels_json != None:
+			if not path.exists(args.levels_json):
+				raise 'Error: Could not find file at "%s"'%args.levels_json
+			levelsabspath = os.path.abspath(args.levels_json)
+			levelsdir,levelsfilename = os.path.split(levelsabspath)
+			self.levellist = self.load_levels(levelsdir, levelsfilename)
+		else:
+			self.levellist = self.load_levels('levels', 'standardlevels.json')
 
+		# TODO: add log file to command-line arguments
+		# TODO: add 'participant ID' to command-line arguments. Use current date/time if not supplied?
+		
+		resources.music_volume = args.music_volume
+		resources.effects_volume = args.effects_volume
+
+		if pygame.mixer:
+			pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
+		pygame.init()
+		displayflags = 0
+		if args.display_mode == 'fullscreen':
+			displayflags |= pygame.FULLSCREEN
+		screensize = (args.display_width, args.display_height)
+		virtualdisplay.set_screensize(screensize)
+		self.screen = pygame.display.set_mode(screensize, displayflags)
+		pygame.display.set_caption('Asteroid Impact')
+		pygame.mouse.set_visible(0)
+		# capture mouse
+		pygame.event.set_grab(True)
+
+		pygame.display.flip()
+
+
+		# asdf
+		self.stepindex = 0
+		self.init_step()
+	
+	def init_step(self):
+		self.mode_millis = 0
+		step = self.gamesteps[self.stepindex]
+		self.mode_max_millis = None
+		if step.has_key('duration') and step['duration'] != None:
+			self.mode_max_millis = int(1000 * step['duration'])
+		self.gamescreenstack = []
+		if step['action'] == 'instructions':
+			self.gamescreenstack.append(AsteroidImpactInstructionsScreen(self.screen, self.gamescreenstack))
+		elif step['action'] == 'game':		
+			self.gamescreenstack.append(AsteroidImpactGameplayScreen(self.screen, self.gamescreenstack, self.levellist))
+		else:
+			raise ValueError('Unknown step action "%s"'%step.action)
+
+
+	def load_levels(self, dir, levellistfile):
+		# load level list
+		with open(path.join(dir, levellistfile)) as f:
+			levellist = json.load(f)
+	
+		# load all levels in list
+		levels = []
+		for levelfile in levellist['levels']:
+			with open(path.join(dir, levelfile)) as f:
+				levels.append(json.load(f))
+	
+		# todo: validate levels?
+
+		return levels
+			
+	def gameloop(self):
+		
+		#Prepare Game Objects
+		clock = pygame.time.Clock()
+
+		if pygame.mixer:
+			load_music('through space.ogg')
+			pygame.mixer.music.set_volume(resources.music_volume)
+			pygame.mixer.music.play()
+	
+		asteroidlogger = AsteroidLogger()
+		logrowdetails = {}
+
+		self.total_millis = 0
+	
+		#Main Loop
+		while 1:
+			millis = clock.tick(60)
+			self.total_millis += millis
+			self.mode_millis += millis
+
+
+			logrowdetails.clear()
+			logrowdetails['total_millis'] = self.total_millis
+			logrowdetails['mode_millis'] = self.mode_millis
+			logrowdetails['top_screen'] = self.gamescreenstack[-1].name
+			# TODO:
+			#player [specified on command line]
+			#experimental condition filename
+			#experimental condition step index
+
+			#Handle Input Events
+			for event in pygame.event.get(QUIT):
+				if event.type == QUIT:
+					return
+		
+			# update the topmost screen:
+			try:
+				self.gamescreenstack[-1].update(millis, logrowdetails)
+			except QuitGame as e:
+				print e
+				return
+
+			# Check if max duration on this step has expired
+			step = self.gamesteps[self.stepindex]
+			if self.mode_max_millis != None and self.mode_max_millis < self.mode_millis:
+				# end this mode:
+				self.gamescreenstack = []
+
+			if len(self.gamescreenstack) == 0:
+				self.stepindex += 1
+				if self.stepindex >= len(self.gamesteps):
+					# all steps completed
+					return
+				self.init_step()
+				# Switch to gameplay
+
+			# draw topmost opaque screen and everything above it
+			topopaquescreenindex = -1
+			for i in range(-1, -1-len(self.gamescreenstack), -1):
+				topopaquescreenindex = i
+				if self.gamescreenstack[i].opaque:
+					break
+
+			for screenindex in range(topopaquescreenindex, 0, 1):
+				self.gamescreenstack[screenindex].draw()
+		
+			pygame.display.flip()
+		
+			asteroidlogger.log(logrowdetails)
+			
 
 def main():
 	args = parser.parse_args()
-	resources.music_volume = args.music_volume
-	resources.effects_volume = args.effects_volume
-	
-	# load levels
-	if args.levels_json != None:
-		if not path.exists(args.levels_json):
-			print 'Error: Could not find file at "%s"'%args.levels_json
-			return
-		levelsabspath = os.path.abspath(args.levels_json)
-		levelsdir,levelsfilename = os.path.split(levelsabspath)
-		levellist = load_levels(levelsdir, levelsfilename)
-	else:
-		levellist = load_levels('levels', 'standardlevels.json')
-	
-	if pygame.mixer:
-		pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
-	pygame.init()
-	displayflags = 0
-	if args.display_mode == 'fullscreen':
-		displayflags |= pygame.FULLSCREEN
-	screensize = (args.display_width, args.display_height)
-	virtualdisplay.set_screensize(screensize)
-	screen = pygame.display.set_mode(screensize, displayflags)
-	pygame.display.set_caption('Asteroid Impact')
-	pygame.mouse.set_visible(0)
-	# capture mouse
-	pygame.event.set_grab(True)
-	
-	gamescreenstack = []
-	gamescreenstack.append(AsteroidImpactInstructionsScreen(screen, gamescreenstack))
-	
-	pygame.display.flip()
 
-	#Prepare Game Objects
-	clock = pygame.time.Clock()
+	game_mode_manager = GameModeManager(args)
+	game_mode_manager.gameloop()
 
-	if pygame.mixer:
-		load_music('through space.ogg')
-		pygame.mixer.music.set_volume(resources.music_volume)
-		pygame.mixer.music.play()
-	
-	
-	#Main Loop
-	while 1:
-		millis = clock.tick(60)
-
-		#Handle Input Events
-		for event in pygame.event.get(QUIT):
-			if event.type == QUIT:
-				return
-		
-		# update the topmost screen:
-		try:
-			gamescreenstack[-1].update(millis)
-		except QuitGame as e:
-			print e
-			return
-
-		if len(gamescreenstack) == 0:
-			# Switch to gameplay
-			gamescreenstack.append(AsteroidImpactGameplayScreen(screen, gamescreenstack, levellist))
-
-		# draw topmost opaque screen and everything above it
-		topopaquescreenindex = -1
-		for i in range(-1, -1-len(gamescreenstack), -1):
-			topopaquescreenindex = i
-			if gamescreenstack[i].opaque:
-				break
-
-		for screenindex in range(topopaquescreenindex, 0, 1):
-			gamescreenstack[screenindex].draw()
-		
-		pygame.display.flip()
-
-#Game Over
-
-if __name__ == '__main__': main()
+if __name__ == '__main__': 
+	main()

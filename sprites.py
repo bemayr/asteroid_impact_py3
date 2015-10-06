@@ -140,6 +140,7 @@ class BasePowerup(VirtualGameSprite):
 class SlowPowerup(BasePowerup):
 	def __init__(self, diameter=32, left=100, top=100):
 		BasePowerup.__init__(self, diameter=diameter, left=left, top=top, maxduration=5.0)
+		self.type = 'slow'
 		self.image, self.rect = load_image('icecube.png', -1)
 		self.image = self.image.convert_alpha()
 		self.gamerect = pygame.Rect(left, top, diameter, diameter)
@@ -196,6 +197,7 @@ class SlowPowerup(BasePowerup):
 class ShieldPowerup(BasePowerup):
 	def __init__(self, diameter=32, left=80, top=80):
 		BasePowerup.__init__(self, diameter=diameter, left=left, top=top, maxduration=5.0)
+		self.type = 'shield'
 		self.image, self.rect = load_image('shield.png', -1)
 		self.image = self.image.convert_alpha()
 		self.gamerect = pygame.Rect(left, top, diameter, diameter)
@@ -236,4 +238,5 @@ class NonePowerup(BasePowerup):
 	def __init__(self, duration=10.0):
 		# configure as a circle completely covering the screen so I get picked up as soon as available
 		BasePowerup.__init__(self, diameter=200000, left=0, top=0, maxduration=duration)
+		self.type = 'none'
 		self.image = None
