@@ -388,11 +388,11 @@ class AsteroidImpactGameplayScreen(GameScreen):
 		
 		self.update_status_text()
 		logrowdetails['level_millis'] = self.level_millis
-		logrowdetails['level_index'] = self.level_index
-		logrowdetails['level_attempt'] = self.level_attempt
+		logrowdetails['level_number'] = self.level_index + 1
+		logrowdetails['level_attempt'] = self.level_attempt + 1
 		logrowdetails['level_state'] = levelstate
 
-		logrowdetails['target_index'] = self.target_index
+		logrowdetails['targets_collected'] = self.target_index
 		logrowdetails['target_x'] = self.target.gamerect.centerx
 		logrowdetails['target_y'] = self.target.gamerect.centery
 
@@ -403,7 +403,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 
 		# on-screen powerup (these get weird when active)
 		logrowdetails['powerup_x'] = self.powerup.gamerect.centerx
-		logrowdetails['powerup_x'] = self.powerup.gamerect.centerx
+		logrowdetails['powerup_y'] = self.powerup.gamerect.centery
 		logrowdetails['powerup_diameter'] = self.powerup.gamediameter
 		logrowdetails['powerup_type'] = self.powerup.type
 

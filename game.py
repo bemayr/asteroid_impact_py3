@@ -100,11 +100,11 @@ class GameModeManager:
 		self.init_step()
 	
 	def init_step(self):
-		self.mode_millis = 0
+		self.step_millis = 0
 		step = self.gamesteps[self.stepindex]
-		self.mode_max_millis = None
+		self.step_max_millis = None
 		if step.has_key('duration') and step['duration'] != None:
-			self.mode_max_millis = int(1000 * step['duration'])
+			self.step_max_millis = int(1000 * step['duration'])
 		self.gamescreenstack = []
 		if step['action'] == 'instructions':
 			self.gamescreenstack.append(AsteroidImpactInstructionsScreen(self.screen, self.gamescreenstack))
@@ -148,12 +148,13 @@ class GameModeManager:
 		while 1:
 			millis = clock.tick(60)
 			self.total_millis += millis
-			self.mode_millis += millis
+			self.step_millis += millis
 
 
 			logrowdetails.clear()
 			logrowdetails['total_millis'] = self.total_millis
-			logrowdetails['mode_millis'] = self.mode_millis
+			logrowdetails['step_number'] = self.stepindex + 1
+			logrowdetails['step_millis'] = self.step_millis
 			logrowdetails['top_screen'] = self.gamescreenstack[-1].name
 			# TODO:
 			#player [specified on command line]
@@ -174,8 +175,8 @@ class GameModeManager:
 
 			# Check if max duration on this step has expired
 			step = self.gamesteps[self.stepindex]
-			if self.mode_max_millis != None and self.mode_max_millis < self.mode_millis:
-				# end this mode:
+			if self.step_max_millis != None and self.step_max_millis < self.step_millis:
+				# end this step:
 				self.gamescreenstack = []
 
 			if len(self.gamescreenstack) == 0:
@@ -204,8 +205,8 @@ class GameModeManager:
 def main():
 	args = parser.parse_args()
 
-	game_mode_manager = GameModeManager(args)
-	game_mode_manager.gameloop()
+	game_step_manager = GameModeManager(args)
+	game_step_manager.gameloop()
 
 if __name__ == '__main__': 
 	main()
