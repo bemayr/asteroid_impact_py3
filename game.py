@@ -86,7 +86,7 @@ class GameModeManager:
 		if pygame.mixer:
 			pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
 
-		displayflags = 0
+		displayflags = pygame.DOUBLEBUF
 		if args.display_mode == 'fullscreen':
 			displayflags |= pygame.FULLSCREEN
 		else:
@@ -141,8 +141,6 @@ class GameModeManager:
 		return levels
 			
 	def gameloop(self):
-		
-		#Prepare Game Objects
 		clock = pygame.time.Clock()
 
 		if pygame.mixer:
@@ -157,54 +155,67 @@ class GameModeManager:
 		
 		# cheesy 'framerate' display
 		# mostly used to indicate if I'm getting 60fps or 30fps
-		fps_display_enable = False
+		fps_display_enable = True
 		import sprites
-		fps_sprite = Asteroid(diameter=8)
+		fps_sprite = Target(diameter=8)
 		fps_sprite.rect.top = 0
 		fps_sprite_group = pygame.sprite.Group([fps_sprite])
 	
 		#Main Loop
 		while 1:
-			millis = clock.tick(60)
-			self.total_millis += millis
-			self.step_millis += millis
+			# more consistent, more cpu
+			real_millis = clock.tick_busy_loop(60)
+			# less repeatable, less cpu:
+			#real_millis = clock.tick(60)
+			
+			if real_millis >= 25:
+				# if we're not getting 60fps, then run update() extra times
+				# find new frame durations that add-up to real_millis:
+				frames = int(round(real_millis * .001 * 60))
+				millis_list = [16] * frames
+				millis_list[-1] = real_millis - 16 * (frames-1)
+			else:
+				millis_list = (real_millis,)
 
+			for millis in millis_list:
+				self.total_millis += millis
+				self.step_millis += millis
 
-			logrowdetails.clear()
-			logrowdetails['total_millis'] = self.total_millis
-			logrowdetails['step_number'] = self.stepindex + 1
-			logrowdetails['step_millis'] = self.step_millis
-			logrowdetails['top_screen'] = self.gamescreenstack[-1].name
-			# TODO:
-			#player [specified on command line]
-			#experimental condition filename
-			#experimental condition step index
+				logrowdetails.clear()
+				logrowdetails['total_millis'] = self.total_millis
+				logrowdetails['step_number'] = self.stepindex + 1
+				logrowdetails['step_millis'] = self.step_millis
+				logrowdetails['top_screen'] = self.gamescreenstack[-1].name
+				# TODO:
+				#player [specified on command line]
+				#experimental condition filename
+				#experimental condition step index
 
-			#Handle Input Events
-			for event in pygame.event.get(QUIT):
-				if event.type == QUIT:
-					return
+				#Handle Input Events
+				for event in pygame.event.get(QUIT):
+					if event.type == QUIT:
+						return
 		
-			# update the topmost screen:
-			try:
-				self.gamescreenstack[-1].update(millis, logrowdetails)
-			except QuitGame as e:
-				print e
-				return
-
-			# Check if max duration on this step has expired
-			step = self.gamesteps[self.stepindex]
-			if self.step_max_millis != None and self.step_max_millis < self.step_millis:
-				# end this step:
-				self.gamescreenstack = []
-
-			if len(self.gamescreenstack) == 0:
-				self.stepindex += 1
-				if self.stepindex >= len(self.gamesteps):
-					# all steps completed
+				# update the topmost screen:
+				try:
+					self.gamescreenstack[-1].update(millis, logrowdetails)
+				except QuitGame as e:
+					print e
 					return
-				self.init_step()
-				# Switch to gameplay
+
+				# Check if max duration on this step has expired
+				step = self.gamesteps[self.stepindex]
+				if self.step_max_millis != None and self.step_max_millis < self.step_millis:
+					# end this step:
+					self.gamescreenstack = []
+
+				if len(self.gamescreenstack) == 0:
+					self.stepindex += 1
+					if self.stepindex >= len(self.gamesteps):
+						# all steps completed
+						return
+					self.init_step()
+					# Switch to gameplay
 
 			# draw topmost opaque screen and everything above it
 			topopaquescreenindex = -1
@@ -216,18 +227,9 @@ class GameModeManager:
 			for screenindex in range(topopaquescreenindex, 0, 1):
 				self.gamescreenstack[screenindex].draw()
 				
-			# hack FPS display
-			fps_sprite.rect.left = millis
-			if millis < 20:
-				fps_sprite.rect.top = 0
-			if millis < 40:
-				fps_sprite.rect.top = 20
-			if millis < 50:
-				fps_sprite.rect.top = 30
-			if millis < 60:
-				fps_sprite.rect.top = 40
-			else:
-				fps_sprite.rect.top = 50
+			# cheesy 'no text' FPS display
+			fps_sprite.rect.left = real_millis
+			fps_sprite.rect.top = 16 * (int(round(real_millis * .001 * 60))-1)
 			if fps_display_enable:
 				fps_sprite_group.draw(self.screen)
 		

@@ -74,9 +74,9 @@ class AsteroidImpactInstructionsScreen(GameScreen):
 		asteroidscreenbounds = pygame.Rect(60, 200, 480-60-60, 80)
 		asteroidgamebounds = virtualdisplay.gamerect_from_screenrect(asteroidscreenbounds)
 		self.asteroids = pygame.sprite.Group([
-			Asteroid(diameter=64,dx=3,dy=2.0,top=asteroidgamebounds.top,left=asteroidgamebounds.left,area=asteroidgamebounds),
-			Asteroid(diameter=80,dx=5,dy=-2,top=asteroidgamebounds.top+20,left=asteroidgamebounds.left+400,area=asteroidgamebounds),
-			Asteroid(diameter=40,dx=-2,dy=-6,top=asteroidgamebounds.top+40,left=asteroidgamebounds.left+600,area=asteroidgamebounds)])
+			Asteroid(diameter=64,dx=1.5,dy=1.0,top=asteroidgamebounds.top,left=asteroidgamebounds.left,area=asteroidgamebounds),
+			Asteroid(diameter=80,dx=2.5,dy=-1,top=asteroidgamebounds.top+20,left=asteroidgamebounds.left+400,area=asteroidgamebounds),
+			Asteroid(diameter=40,dx=-1,dy=-3,top=asteroidgamebounds.top+40,left=asteroidgamebounds.left+600,area=asteroidgamebounds)])
 		self.textsprites.append(TextSprite(
 			self.font.render("Avoid the bouncing asteroids. Hit one and it's game over.", 1, black),
 			left=120, top=180))

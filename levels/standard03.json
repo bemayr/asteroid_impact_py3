@@ -1,1 +1,1 @@
-{"asteroids": [{"diameter": 210, "top": 144, "left": 480, "dx": 3, "dy": 12}, {"diameter": 160, "top": 502, "left": 1046, "dx": -3, "dy": 5}], "target_positions": [[78, 436], [771, 254], [282, 819], [397, 413], [1237, 51]], "powerup_list": [{"duration": 1.0, "type": "none"}]}
+{"asteroids": [{"diameter": 210, "top": 144, "left": 480, "dx": 2, "dy": 6}, {"diameter": 160, "top": 502, "left": 1046, "dx": -2, "dy": 3}], "target_positions": [[78, 436], [771, 254], [282, 819], [397, 413], [1237, 51]], "powerup_list": [{"duration": 1.0, "type": "none"}]}
