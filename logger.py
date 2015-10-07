@@ -1,16 +1,27 @@
-
+import os
 from sets import Set
+
 class AsteroidLogger:
 	"""Game state logger for AsteroidImpact game"""
-	def __init__(self):
+	def __init__(self, filename, overwrite_file):
 		"""Create new AsteroidLogger"""
 		# make output log file
 		class NoneFile:
 			def write(self, data): pass
-		#self.logfile = open('/Users/nick/src/AsteroidImpact/test.csv','w')
-		self.logfile = NoneFile()
+		if filename:
+			if os.path.exists(filename) and not overwrite_file:
+				print 'Error: File "%s" exists and overwrite is not specified'%filename
+				raise IOError('CSV Log file exists and overwrite not specified')
+			self.logfile = open(filename,'w')
+		else:
+			self.logfile = NoneFile()
 		
 		self.columns = [
+			# Number for this research participant (subject). 
+			# This is specified on the command-line
+			'subject_number',
+			# Run number for this subject (specified on command-line)
+			'subject_run',
 			# milliseconds since application start
 			'total_millis',
 			# number of step in sequence, for example 1 for instructions then 2 for game

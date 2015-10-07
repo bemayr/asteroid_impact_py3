@@ -49,6 +49,14 @@ parser.add_argument('--display-mode', choices=['windowed','fullscreen'], default
 	help='Whether to run windowed or fullscreen')
 parser.add_argument('--levels-json', type=str, default=None,
 	help='levellist.json file listing all levels to complete.')
+parser.add_argument('--subject-number', type=str, default='',
+	help='Subject number to include in log.')
+parser.add_argument('--subject-run', type=str, default='',
+	help='Subject run number to include in the log.')
+parser.add_argument('--log-filename', type=str, default=None,
+	help='File to save log CSV file to with per-frame data.')
+parser.add_argument('--log-overwrite', choices=['true','false'], default='false',
+	help='Whether to overwrite pre-existing log file.')
 
 
 class GameModeManager:
@@ -59,6 +67,7 @@ class GameModeManager:
 	Duration: After this many seconds move to the next step, regardless of what the player is doing now.
 	'''
 	def __init__(self, args):
+		self.args = args
 		# TODO: look for this on the command-line:
 		self.gamesteps = [
 			dict(action='instructions',
@@ -68,10 +77,10 @@ class GameModeManager:
 				duration=None)]
 		
 			# load levels
-		if args.levels_json != None:
-			if not path.exists(args.levels_json):
-				raise 'Error: Could not find file at "%s"'%args.levels_json
-			levelsabspath = os.path.abspath(args.levels_json)
+		if self.args.levels_json != None:
+			if not path.exists(self.args.levels_json):
+				raise 'Error: Could not find file at "%s"'%self.args.levels_json
+			levelsabspath = os.path.abspath(self.args.levels_json)
 			levelsdir,levelsfilename = os.path.split(levelsabspath)
 			self.levellist = self.load_levels(levelsdir, levelsfilename)
 		else:
@@ -80,8 +89,8 @@ class GameModeManager:
 		# TODO: add log file to command-line arguments
 		# TODO: add 'participant ID' to command-line arguments. Use current date/time if not supplied?
 		
-		resources.music_volume = args.music_volume
-		resources.effects_volume = args.effects_volume
+		resources.music_volume = self.args.music_volume
+		resources.effects_volume = self.args.effects_volume
 
 		if pygame.mixer:
 			pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
@@ -92,9 +101,10 @@ class GameModeManager:
 		else:
 			# windowed
 			displayflags |= pygame.NOFRAME
-			if args.window_x != None and args.window_y != None:
-				os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (args.window_x,args.window_y)
-		screensize = (args.display_width, args.display_height)
+			if self.args.window_x != None and self.args.window_y != None:
+				os.environ['SDL_VIDEO_WINDOW_POS'] = \
+					"%d,%d" % (self.args.window_x, self.args.window_y)
+		screensize = (self.args.display_width, self.args.display_height)
 		virtualdisplay.set_screensize(screensize)
 
 		pygame.init()
@@ -147,8 +157,9 @@ class GameModeManager:
 			load_music('through space.ogg')
 			pygame.mixer.music.set_volume(resources.music_volume)
 			pygame.mixer.music.play()
-	
-		asteroidlogger = AsteroidLogger()
+		
+		
+		asteroidlogger = AsteroidLogger(self.args.log_filename, self.args.log_overwrite == 'true')
 		logrowdetails = {}
 
 		self.total_millis = 0
@@ -182,6 +193,9 @@ class GameModeManager:
 				self.step_millis += millis
 
 				logrowdetails.clear()
+				logrowdetails['subject_number'] = self.args.subject_number
+				logrowdetails['subject_run'] = self.args.subject_run
+				logrowdetails['step_number'] = self.stepindex + 1
 				logrowdetails['total_millis'] = self.total_millis
 				logrowdetails['step_number'] = self.stepindex + 1
 				logrowdetails['step_millis'] = self.step_millis
@@ -217,6 +231,9 @@ class GameModeManager:
 					self.init_step()
 					# Switch to gameplay
 
+				asteroidlogger.log(logrowdetails)
+
+
 			# draw topmost opaque screen and everything above it
 			topopaquescreenindex = -1
 			for i in range(-1, -1-len(self.gamescreenstack), -1):
@@ -233,10 +250,7 @@ class GameModeManager:
 			if fps_display_enable:
 				fps_sprite_group.draw(self.screen)
 		
-			pygame.display.flip()
-		
-			asteroidlogger.log(logrowdetails)
-			
+			pygame.display.flip()			
 
 def main():
 	args = parser.parse_args()
