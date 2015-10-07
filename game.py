@@ -17,6 +17,7 @@ from __future__ import absolute_import, division
 
 #Import Modules
 import argparse
+import os
 from os import path
 import json
 import pygame
@@ -40,6 +41,10 @@ parser.add_argument('--display-width', type=int, default=640,
 	help='Width of window or full screen mode.')
 parser.add_argument('--display-height', type=int, default=480,
 	help='Height of window or full screen mode.')
+parser.add_argument('--window-x', type=int, default=None,
+	help='X position of window.')
+parser.add_argument('--window-y', type=int, default=None,
+	help='Y position of window.')
 parser.add_argument('--display-mode', choices=['windowed','fullscreen'], default='windowed',
 	help='Whether to run windowed or fullscreen')
 parser.add_argument('--levels-json', type=str, default=None,
@@ -80,12 +85,19 @@ class GameModeManager:
 
 		if pygame.mixer:
 			pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
-		pygame.init()
+
 		displayflags = 0
 		if args.display_mode == 'fullscreen':
 			displayflags |= pygame.FULLSCREEN
+		else:
+			# windowed
+			displayflags |= pygame.NOFRAME
+			if args.window_x != None and args.window_y != None:
+				os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (args.window_x,args.window_y)
 		screensize = (args.display_width, args.display_height)
 		virtualdisplay.set_screensize(screensize)
+
+		pygame.init()
 		self.screen = pygame.display.set_mode(screensize, displayflags)
 		pygame.display.set_caption('Asteroid Impact')
 		pygame.mouse.set_visible(0)
@@ -94,8 +106,7 @@ class GameModeManager:
 
 		pygame.display.flip()
 
-
-		# asdf
+		# Init sequence of steps:
 		self.stepindex = 0
 		self.init_step()
 	
@@ -143,6 +154,14 @@ class GameModeManager:
 		logrowdetails = {}
 
 		self.total_millis = 0
+		
+		# cheesy 'framerate' display
+		# mostly used to indicate if I'm getting 60fps or 30fps
+		fps_display_enable = False
+		import sprites
+		fps_sprite = Asteroid(diameter=8)
+		fps_sprite.rect.top = 0
+		fps_sprite_group = pygame.sprite.Group([fps_sprite])
 	
 		#Main Loop
 		while 1:
@@ -196,6 +215,21 @@ class GameModeManager:
 
 			for screenindex in range(topopaquescreenindex, 0, 1):
 				self.gamescreenstack[screenindex].draw()
+				
+			# hack FPS display
+			fps_sprite.rect.left = millis
+			if millis < 20:
+				fps_sprite.rect.top = 0
+			if millis < 40:
+				fps_sprite.rect.top = 20
+			if millis < 50:
+				fps_sprite.rect.top = 30
+			if millis < 60:
+				fps_sprite.rect.top = 40
+			else:
+				fps_sprite.rect.top = 50
+			if fps_display_enable:
+				fps_sprite_group.draw(self.screen)
 		
 			pygame.display.flip()
 		
