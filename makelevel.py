@@ -177,6 +177,8 @@ def get_levels():
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Create Asteroid Impact level.')
+	parser.add_argument('--file', type=str, default=None,
+		help='File to save level json to.')
 	parser.add_argument('--seed', type=int, default=None,
 		help='Random number seed. If none supplied will use current time.')
 	parser.add_argument('--target-count', type=int, default=5,
@@ -205,8 +207,13 @@ if __name__ == '__main__':
 		powerup_count=args.powerup_count,
 		powerup_delay=args.powerup_delay, 
 		powerup_types=args.powerup_types)
-		
-	print json.dumps(level)
+	
+	if args.file:
+		with open(args.file, 'w') as f:
+			json.dump(level, f)
+		print 'saved level to file "%s"' % args.file
+	else:
+		print json.dumps(level)
 
-	# pretty printing:
-	#print json.dumps(level, sort_keys=True, indent=4, separators=(',',': '))
+		# pretty printing:
+		#print json.dumps(level, sort_keys=True, indent=4, separators=(',',': '))
