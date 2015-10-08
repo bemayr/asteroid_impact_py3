@@ -204,7 +204,7 @@ class GameModeManager:
 		fps_sprite = Target(diameter=8)
 		fps_sprite.rect.top = 0
 		fps_sprite_group = pygame.sprite.Group([fps_sprite])
-	
+		
 		#Main Loop
 		while 1:
 			# more consistent, more cpu
@@ -239,17 +239,32 @@ class GameModeManager:
 				#experimental condition step index
 
 				#Handle Input Events
-				for event in pygame.event.get(QUIT):
-					if event.type == QUIT:
-						return
 		
 				# update the topmost screen:
+				events = pygame.event.get()
+				for event in events:
+					if event.type == QUIT:
+						return
+					elif event.type == KEYDOWN and event.key == K_ESCAPE:
+						print 'ESC Pressed'
+						return
+					elif (event.type == KEYDOWN
+						and event.key == K_c
+						and (event.mod & pygame.KMOD_ALT) != 0):
+						# toggle cursor capture and visibility:
+						current_grab = pygame.event.get_grab()
+						new_grab = not current_grab
+						pygame.event.set_grab(new_grab)
+						pygame.mouse.set_visible(not new_grab)
+					else:
+						pass
+
 				try:
-					self.gamescreenstack[-1].update(millis, logrowdetails)
+					self.gamescreenstack[-1].update(millis, logrowdetails, events)
 				except QuitGame as e:
 					print e
 					return
-
+				
 				# Check if max duration on this step has expired
 				step = self.gamesteps[self.stepindex]
 				if self.step_max_millis != None and self.step_max_millis < self.step_millis:

@@ -17,7 +17,7 @@ class GameScreen():
 		self.opaque = True
 		self.name = self.__class__.__name__
 		
-	def update(self, millis, logrowdetails):
+	def update(self, millis, logrowdetails, events):
 		pass
 	
 	def draw(self):
@@ -126,11 +126,9 @@ class AsteroidImpactInstructionsScreen(GameScreen):
 		self.sprites.draw(self.screen)
 		self.asteroids.draw(self.screen)
 
-	def update(self, millis, logrowdetails):
-		for event in pygame.event.get():
-			if event.type == KEYDOWN and event.key == K_ESCAPE:
-				raise QuitGame('ESC Pressed')
-			elif event.type == MOUSEBUTTONDOWN:
+	def update(self, millis, logrowdetails, events):
+		for event in events:
+			if event.type == MOUSEBUTTONDOWN:
 				if self.click_to_continue:
 					# position cursor at the center
 					pygame.mouse.set_pos([self.screenarea.centerx, self.screenarea.centery])
@@ -166,13 +164,13 @@ class LevelCompletedOverlayScreen(GameScreen):
 		# remove 'level completed' screen
 		self.screenstack.pop()
 
-	def update(self, millis, logrowdetails):
+	def update(self, millis, logrowdetails, events):
 		self.elapsedmillis += millis
 		
 		if self.elapsedmillis >= 2000:
 			self.close()
 		
-		for event in pygame.event.get():
+		for event in events:
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
 				raise QuitGame('ESC Pressed')
 			elif event.type == MOUSEBUTTONDOWN:
@@ -203,13 +201,13 @@ class GameOverOverlayScreen(GameScreen):
 		# remove 'game over' screen
 		self.screenstack.pop()
 
-	def update(self, millis, logrowdetails):
+	def update(self, millis, logrowdetails, events):
 		self.elapsedmillis += millis
 		
 		if self.elapsedmillis >= 2000:
 			self.close()
 			
-		for event in pygame.event.get():
+		for event in events:
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
 				raise QuitGame('ESC Pressed')
 			elif event.type == MOUSEBUTTONDOWN:
@@ -332,13 +330,13 @@ class AsteroidImpactGameplayScreen(GameScreen):
 			self.noticetext = self.noticefont.render('', 1, (250, 10, 10))
 			self.noticetextrect = self.noticetext.get_rect(centerx=virtualdisplay.screenarea.centerx,centery=virtualdisplay.screenarea.centery)
 
-	def update(self, millis, logrowdetails):
+	def update(self, millis, logrowdetails, events):
 		oldmlevelillis = self.level_millis
 		self.level_millis += millis
 		
 		levelstate = 'countdown' if self.level_millis < 0 else 'playing'
 		
-		for event in pygame.event.get():
+		for event in events:
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
 				raise QuitGame('ESC Pressed')
 			elif event.type == MOUSEBUTTONDOWN:
