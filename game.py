@@ -245,8 +245,15 @@ class GameModeManager:
 				for event in events:
 					if event.type == QUIT:
 						return
-					elif event.type == KEYDOWN and event.key == K_ESCAPE:
-						print 'ESC Pressed'
+					elif (event.type == KEYDOWN 
+						and event.key == K_q
+						and (event.mod & pygame.KMOD_META)):
+						print 'CMD+Q Pressed. Exiting'
+						return
+					elif (event.type == KEYDOWN 
+						and event.key == K_F4
+						and (event.mod & pygame.KMOD_ALT)):
+						print 'ALT+F4 Pressed. Exiting'
 						return
 					elif (event.type == KEYDOWN
 						and event.key == K_c
@@ -258,6 +265,7 @@ class GameModeManager:
 						pygame.mouse.set_visible(not new_grab)
 					else:
 						pass
+						#print event
 
 				try:
 					self.gamescreenstack[-1].update(millis, logrowdetails, events)
