@@ -47,8 +47,10 @@ parser.add_argument('--window-y', type=int, default=None,
 	help='Y position of window.')
 parser.add_argument('--display-mode', choices=['windowed','fullscreen'], default='windowed',
 	help='Whether to run windowed or fullscreen')
+parser.add_argument('--script-json', type=str, default=None,
+	help='script.json file listing all steps such as instructions, gameplay (with levels) and black screens. See samplescript.json for example.')
 parser.add_argument('--levels-json', type=str, default=None,
-	help='levellist.json file listing all levels to complete.')
+	help='levellist.json file listing all levels to complete. Ignored when specifying --script-json')
 parser.add_argument('--subject-number', type=str, default='',
 	help='Subject number to include in log.')
 parser.add_argument('--subject-run', type=str, default='',
@@ -68,27 +70,55 @@ class GameModeManager:
 	'''
 	def __init__(self, args):
 		self.args = args
-		# TODO: look for this on the command-line:
-		self.gamesteps = [
-			dict(action='instructions',
-				duration=5.0),
-			dict(action='game',
-				levels='levels/standardlevels.json',
-				duration=None)]
 		
-			# load levels
-		if self.args.levels_json != None:
-			if not path.exists(self.args.levels_json):
-				raise 'Error: Could not find file at "%s"'%self.args.levels_json
-			levelsabspath = os.path.abspath(self.args.levels_json)
-			levelsdir,levelsfilename = os.path.split(levelsabspath)
-			self.levellist = self.load_levels(levelsdir, levelsfilename)
+		if self.args.script_json != None:
+			with open(self.args.script_json) as f:
+				self.gamesteps = json.load(f)
+			
+			if self.args.levels_json != None:
+				raise 'Error: When specifying script json you must specify levels in script, not command-line argument.'
 		else:
-			self.levellist = self.load_levels('levels', 'standardlevels.json')
+			levelsjson = 'levels/standardlevels.json'
+			if self.args.levels_json != None:
+				if not path.exists(self.args.levels_json):
+					raise 'Error: Could not find file at "%s"'%self.args.levels_json
+				else:
+					levelsjson = self.args.levels_json
 
-		# TODO: add log file to command-line arguments
-		# TODO: add 'participant ID' to command-line arguments. Use current date/time if not supplied?
-		
+			# use these steps when the steps aren't specified on the console:
+			self.gamesteps = [
+				dict(action='instructions',
+					duration=None),
+				dict(action='game',
+					levels=levelsjson,
+					duration=None)]
+					
+		# validate steps and load levels:
+		for i, step in enumerate(self.gamesteps):
+			# duration must be not specified, none or float
+			if step.has_key('duration'):
+				if step['duration'] != None:
+					step['duration'] = float(step['duration'])
+			else:
+				step['duration'] = None
+			
+			if step['action'] == 'instructions':
+				# nothing extra validate
+				pass
+			elif step['action'] == 'blackscreen':
+				# duration is required
+				try:step['duration'] = float(step['duration'])
+				except (TypeError, ValueError):
+					raise 'ERROR: "blackscreen" step must have duration specified as number of seconds duration"'
+			elif step['action'] == 'game':
+				# level json must be valid. Try loading levels
+				if not step.has_key('levels'):
+					raise 'ERROR: "game" action must have levels attribute pointing to levels list json file.'
+
+				levelsabspath = os.path.abspath(step['levels'])
+				levelsdir,levelsfilename = os.path.split(levelsabspath)
+				step['levellist'] = self.load_levels(levelsdir, levelsfilename)
+
 		resources.music_volume = self.args.music_volume
 		resources.effects_volume = self.args.effects_volume
 
@@ -128,11 +158,14 @@ class GameModeManager:
 			self.step_max_millis = int(1000 * step['duration'])
 		self.gamescreenstack = []
 		if step['action'] == 'instructions':
-			self.gamescreenstack.append(AsteroidImpactInstructionsScreen(self.screen, self.gamescreenstack))
+			click_to_continue = step['duration'] == None
+			self.gamescreenstack.append(AsteroidImpactInstructionsScreen(self.screen, self.gamescreenstack, click_to_continue=click_to_continue))
+		elif step['action'] == 'blackscreen':
+			self.gamescreenstack.append(BlackScreen(self.screen, self.gamescreenstack))
 		elif step['action'] == 'game':		
-			self.gamescreenstack.append(AsteroidImpactGameplayScreen(self.screen, self.gamescreenstack, self.levellist))
+			self.gamescreenstack.append(AsteroidImpactGameplayScreen(self.screen, self.gamescreenstack, step['levellist']))
 		else:
-			raise ValueError('Unknown step action "%s"'%step.action)
+			raise ValueError('Unknown step action "%s"'%step['action'])
 
 
 	def load_levels(self, dir, levellistfile):
@@ -166,7 +199,7 @@ class GameModeManager:
 		
 		# cheesy 'framerate' display
 		# mostly used to indicate if I'm getting 60fps or 30fps
-		fps_display_enable = True
+		fps_display_enable = False
 		import sprites
 		fps_sprite = Target(diameter=8)
 		fps_sprite.rect.top = 0

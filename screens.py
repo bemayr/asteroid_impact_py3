@@ -31,10 +31,27 @@ class TextSprite:
 		self.textrect = self.textsurf.get_rect(**kwargs)
 	def draw(self, screen):
 		screen.blit(self.textsurf, self.textrect)
-
-class AsteroidImpactInstructionsScreen(GameScreen):
+		
+class BlackScreen(GameScreen):
+	"""Black screen. Shown to the player while other things are happening in other parts of the research"""
 	def __init__(self, screen, gamescreenstack):
 		GameScreen.__init__(self, screen, gamescreenstack)
+		self.name = 'black'
+		self.opaque = True
+		self.screenarea = self.screen.get_rect()
+
+		self.background = pygame.Surface(screen.get_size())
+		self.background = self.background.convert()
+		self.background.fill((0, 0, 0))
+
+	def draw(self):
+		# draw background
+		self.screen.blit(self.background, (0, 0))
+
+class AsteroidImpactInstructionsScreen(GameScreen):
+	def __init__(self, screen, gamescreenstack, click_to_continue=True):
+		GameScreen.__init__(self, screen, gamescreenstack)
+		self.click_to_continue = click_to_continue
 		self.name = 'instructions'
 		self.opaque = True
 		self.screenarea = self.screen.get_rect()
@@ -95,9 +112,10 @@ class AsteroidImpactInstructionsScreen(GameScreen):
 			self.font.render("Pick up a clock to slow asteroids for a few seconds", 1, black),
 			left=120, top=360))
 
-		self.textsprites.append(TextSprite(
-			self.font_big.render("Click To Begin", 1, (250, 10, 10)),
-			centerx=self.screenarea.width/2, bottom=self.screenarea.height))
+		if self.click_to_continue:
+			self.textsprites.append(TextSprite(
+				self.font_big.render("Click To Begin", 1, (250, 10, 10)),
+				centerx=self.screenarea.width/2, bottom=self.screenarea.height))
 
 	def draw(self):
 		# draw background
@@ -113,11 +131,12 @@ class AsteroidImpactInstructionsScreen(GameScreen):
 			if event.type == KEYDOWN and event.key == K_ESCAPE:
 				raise QuitGame('ESC Pressed')
 			elif event.type == MOUSEBUTTONDOWN:
-				# position cursor at the center
-				pygame.mouse.set_pos([self.screenarea.centerx, self.screenarea.centery])
-				# end the instructions screen:
-				self.screenstack.pop()
-				# game.py will switch to gameplay
+				if self.click_to_continue:
+					# position cursor at the center
+					pygame.mouse.set_pos([self.screenarea.centerx, self.screenarea.centery])
+					# end the instructions screen:
+					self.screenstack.pop()
+					# game.py will switch to gameplay
 			elif event.type is MOUSEBUTTONUP:
 				pass
 		
