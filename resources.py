@@ -10,6 +10,8 @@ import os, sys, pygame
 music_volume = 1.0
 effects_volume = 1.0
 
+image_cache = {}
+
 def resource_path(filename):
     # The 'data' directory isn't in the same spot when pyinstaller creates a
     # standalone build packed exe:
@@ -40,19 +42,38 @@ def load_font(name, size):
 
     return NoneFont(fullname, size)
 
-def load_image(name, colorkey=None):
+def load_image(name, size=None, convert_alpha=False, colorkey=None):
+    # Look up image in cache
+    cache_key = (name, size, convert_alpha, colorkey)
+    if image_cache.has_key(cache_key):
+        return image_cache[cache_key]
+    
+    if size == None:
+        raise ValueError('please specify desired size')
     fullname = resource_path(os.path.join('data', name))
     try:
         image = pygame.image.load(fullname)
     except pygame.error, message:
         print 'Cannot load image:', fullname
         raise SystemExit, message
-    image = image.convert()
-    if colorkey is not None:
+
+    if convert_alpha:
+        image = image.convert_alpha()
+    elif colorkey is not None:
         if colorkey is -1:
             colorkey = image.get_at((0, 0))
         image.set_colorkey(colorkey, pygame.locals.RLEACCEL)
-    return image, image.get_rect()
+        image = image.convert()
+    else:
+        image = image.convert()
+
+    if size != None:
+        image = pygame.transform.smoothscale(image, size)
+
+    # save in cache:
+    image_cache[cache_key] = image
+
+    return image
 
 def load_sound(name):
     class NoneSound:

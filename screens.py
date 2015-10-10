@@ -286,10 +286,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
         self.blackbackground = self.blackbackground.convert()
         self.blackbackground.fill((0, 0, 0))
 
-        self.gamebackground = load_image('background4x3.jpg')[0]
-        self.gamebackground = pygame.transform.smoothscale(
-            self.gamebackground, virtualdisplay.screenarea.size)
-        self.gamebackground = self.gamebackground.convert()
+        self.gamebackground = load_image('background4x3.jpg', size=virtualdisplay.screenarea.size)
         # draw gamebackground on blackbackground to only have to draw black/game once per frame:
         self.blackbackground.blit(self.gamebackground, virtualdisplay.screenarea.topleft)
 

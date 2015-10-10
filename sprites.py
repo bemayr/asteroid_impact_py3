@@ -21,16 +21,14 @@ class VirtualGameSprite(pygame.sprite.Sprite):
 class Cursor(VirtualGameSprite):
     def __init__(self):
         VirtualGameSprite.__init__(self) #call Sprite initializer
-        self.image, self.rect = load_image('cursor.png', -1)
-        self.image = self.image.convert_alpha()
-        self.gamediameter = 32
         # find screen diameter
+        self.gamediameter = 32
         self.gamerect = pygame.Rect(0, 0, self.gamediameter,self.gamediameter)
         self.update_rect()
-        self.image = pygame.transform.smoothscale(
-            self.image,
-            (self.rect.width, self.rect.height))
-        self.image.convert()
+        self.image = load_image(
+            'cursor.png',
+            (self.rect.width, self.rect.height),
+            convert_alpha=True)
 
     def update(self, millis):
         "move the cursor based on the mouse position"
@@ -55,14 +53,13 @@ class Cursor(VirtualGameSprite):
 class Target(VirtualGameSprite):
     def __init__(self, diameter=32, left=20, top=20):
         VirtualGameSprite.__init__(self) #call Sprite initializer
-        self.image, self.rect = load_image('crystal.png', -1)
-        self.image = self.image.convert_alpha()
         self.gamediameter = diameter
         self.gamerect = pygame.Rect(left, top, diameter, diameter)
         self.update_rect()
-        self.image = pygame.transform.smoothscale(
-            self.image, (self.rect.width, self.rect.height))
-        self.image.convert()
+        self.image = load_image(
+            'crystal.png',
+            (self.rect.width, self.rect.height),
+            convert_alpha=True)
         self.pickup_sound = load_sound('ring_inventory.wav')
 
     def pickedup(self):
@@ -76,14 +73,14 @@ class Target(VirtualGameSprite):
 class Asteroid(VirtualGameSprite):
     def __init__(self, diameter=200, dx=4, dy=10, left=20, top=20, area=None):
         VirtualGameSprite.__init__(self) #call Sprite intializer
-        self.image, self.rect = load_image('asteroid.png', -1)
-        self.image = self.image.convert_alpha()
         self.gamediameter = diameter
         self.gamerect = pygame.Rect(left, top, diameter, diameter)
         self.update_rect()
-        self.image = pygame.transform.smoothscale(
-            self.image, (self.rect.width, self.rect.height))
-        self.image.convert()
+        self.image = load_image(
+            'asteroid.png',
+            (self.rect.width, self.rect.height),
+            convert_alpha=True)
+
         if area:
             self.GAME_AREA = area
         else:
@@ -151,12 +148,13 @@ class SlowPowerup(BasePowerup):
     def __init__(self, diameter=32, left=100, top=100):
         BasePowerup.__init__(self, diameter=diameter, left=left, top=top, maxduration=5.0)
         self.type = 'slow'
-        self.image, self.rect = load_image('clock.png', -1)
-        self.image = self.image.convert_alpha()
         self.gamerect = pygame.Rect(left, top, diameter, diameter)
         self.update_rect()
-        self.image = pygame.transform.smoothscale(
-            self.image, (self.rect.width, self.rect.height))
+        self.image = load_image(
+            'clock.png',
+            (self.rect.width, self.rect.height),
+            convert_alpha=True)
+
         self.sound_begin = load_sound('slow start.wav')
         self.sound_end = load_sound('slow end.wav')
         # these let me start the ending sound to end overlapping when the effect ends:
@@ -209,12 +207,15 @@ class ShieldPowerup(BasePowerup):
     def __init__(self, diameter=32, left=80, top=80):
         BasePowerup.__init__(self, diameter=diameter, left=left, top=top, maxduration=5.0)
         self.type = 'shield'
-        self.image, self.rect = load_image('shield.png', -1)
-        self.image = self.image.convert_alpha()
         self.gamerect = pygame.Rect(left, top, diameter, diameter)
         self.update_rect()
+        self.image = load_image(
+            'shield.png',
+            (self.rect.width, self.rect.height),
+            convert_alpha=True)
         self.image = pygame.transform.smoothscale(
             self.image, (self.rect.width, self.rect.height))
+
         self.sound_begin = load_sound('shield start.wav')
         self.sound_end = load_sound('shield end.wav')
         # these let me start the ending sound to end overlapping when the effect ends:
