@@ -53,9 +53,9 @@ class Cursor(VirtualGameSprite):
 
 
 class Target(VirtualGameSprite):
-    def __init__(self, diameter=64, left=20, top=20):
+    def __init__(self, diameter=32, left=20, top=20):
         VirtualGameSprite.__init__(self) #call Sprite initializer
-        self.image, self.rect = load_image('target.png', -1)
+        self.image, self.rect = load_image('crystal.png', -1)
         self.image = self.image.convert_alpha()
         self.gamediameter = diameter
         self.gamerect = pygame.Rect(left, top, diameter, diameter)
@@ -151,7 +151,7 @@ class SlowPowerup(BasePowerup):
     def __init__(self, diameter=32, left=100, top=100):
         BasePowerup.__init__(self, diameter=diameter, left=left, top=top, maxduration=5.0)
         self.type = 'slow'
-        self.image, self.rect = load_image('icecube.png', -1)
+        self.image, self.rect = load_image('clock.png', -1)
         self.image = self.image.convert_alpha()
         self.gamerect = pygame.Rect(left, top, diameter, diameter)
         self.update_rect()

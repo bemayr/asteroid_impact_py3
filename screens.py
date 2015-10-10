@@ -3,7 +3,7 @@ Game screens for AsteroidImpact
 """
 
 from sprites import *
-from resources import load_font
+from resources import load_font, load_image
 from pygame.locals import *
 import virtualdisplay
 
@@ -286,9 +286,10 @@ class AsteroidImpactGameplayScreen(GameScreen):
         self.blackbackground = self.blackbackground.convert()
         self.blackbackground.fill((0, 0, 0))
 
-        self.gamebackground = pygame.Surface(virtualdisplay.screenarea.size)
+        self.gamebackground = load_image('background4x3.jpg')[0]
+        self.gamebackground = pygame.transform.smoothscale(
+            self.gamebackground, virtualdisplay.screenarea.size)
         self.gamebackground = self.gamebackground.convert()
-        self.gamebackground.fill((250, 250, 250))
         # draw gamebackground on blackbackground to only have to draw black/game once per frame:
         self.blackbackground.blit(self.gamebackground, virtualdisplay.screenarea.topleft)
 
