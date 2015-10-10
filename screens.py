@@ -427,6 +427,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
                     self.powerupsprites.add(self.powerup)
                 self.next_powerup_list_index = \
                     (1 + self.next_powerup_list_index) % len(self.powerup_list)
+                #print 'new available powerup is', self.powerup, 'at', self.powerup.gamerect
             self.powerup.update(millis)
 
             # Check target collision:
@@ -451,6 +452,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
                 and circularspritesoverlap(self.cursor, self.powerup)\
                 and not self.powerup.active\
                 and not self.powerup.used:
+                print 'activating powerup:', self.powerup
                 self.powerup.activate(self.cursor, self.asteroids)
 
             # Check asteroid collision:

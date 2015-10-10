@@ -250,6 +250,17 @@ class NonePowerup(BasePowerup):
     def __init__(self, duration=10.0):
         # configure as a circle completely covering the screen so I get picked up
         # as soon as available
-        BasePowerup.__init__(self, diameter=200000, left=0, top=0, maxduration=duration)
+        diameter = 10*virtualdisplay.GAME_AREA.width
+        self.gamerect = pygame.Rect(0,0, diameter, diameter)
+        self.gamerect.centerx = virtualdisplay.GAME_AREA.width/2
+        self.gamerect.centery = virtualdisplay.GAME_AREA.height/2
+        BasePowerup.__init__(
+            self,
+            diameter=diameter,
+            left=self.gamerect.left,
+            top=self.gamerect.top,
+            maxduration=duration)
         self.type = 'none'
         self.image = None
+        self.update_rect()
+        print 'nonepowerup rect', self.gamerect
