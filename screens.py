@@ -208,9 +208,7 @@ class LevelCompletedOverlayScreen(GameScreen):
             self.close()
 
         for event in events:
-            if event.type == KEYDOWN and event.key == K_ESCAPE:
-                raise QuitGame('ESC Pressed')
-            elif event.type == MOUSEBUTTONDOWN:
+            if event.type == MOUSEBUTTONDOWN:
                 #self.close()
                 pass
             elif event.type is MOUSEBUTTONUP:
@@ -247,9 +245,7 @@ class GameOverOverlayScreen(GameScreen):
             self.close()
 
         for event in events:
-            if event.type == KEYDOWN and event.key == K_ESCAPE:
-                raise QuitGame('ESC Pressed')
-            elif event.type == MOUSEBUTTONDOWN:
+            if event.type == MOUSEBUTTONDOWN:
                 pass
                 #self.close()
             elif event.type is MOUSEBUTTONUP:
@@ -397,9 +393,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
         levelstate = 'countdown' if self.level_millis < 0 else 'playing'
 
         for event in events:
-            if event.type == KEYDOWN and event.key == K_ESCAPE:
-                raise QuitGame('ESC Pressed')
-            elif event.type == MOUSEBUTTONDOWN:
+            if event.type == MOUSEBUTTONDOWN:
                 pass
             elif event.type is MOUSEBUTTONUP:
                 pass

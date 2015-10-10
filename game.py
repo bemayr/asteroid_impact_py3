@@ -26,7 +26,11 @@ if not pygame.font:
 if not pygame.mixer:
     print 'Warning, sound disabled'
 
-from screens import AsteroidImpactInstructionsScreen, AsteroidImpactGameplayScreen, BlackScreen
+from screens import (
+    AsteroidImpactInstructionsScreen,
+     AsteroidImpactGameplayScreen,
+     BlackScreen,
+     QuitGame)
 import resources
 from sprites import Target
 import virtualdisplay
