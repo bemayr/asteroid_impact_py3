@@ -204,7 +204,7 @@ class LevelCompletedOverlayScreen(GameScreen):
     def update(self, millis, logrowdetails, events):
         self.elapsedmillis += millis
 
-        if self.elapsedmillis >= 2000:
+        if self.elapsedmillis >= 1000:
             self.close()
 
         for event in events:
@@ -241,7 +241,7 @@ class GameOverOverlayScreen(GameScreen):
     def update(self, millis, logrowdetails, events):
         self.elapsedmillis += millis
 
-        if self.elapsedmillis >= 2000:
+        if self.elapsedmillis >= 1000:
             self.close()
 
         for event in events:
@@ -312,7 +312,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 
     def setup_level(self):
         leveldetails = self.level_list[self.level_index]
-        self.level_millis = -4000 # for the 'get ready' and level countdown
+        self.level_millis = -2000 # for the 'get ready' and level countdown
 
         self.cursor = Cursor()
         self.target_positions = leveldetails['target_positions']
@@ -349,29 +349,17 @@ class AsteroidImpactGameplayScreen(GameScreen):
             top=virtualdisplay.screenarea.top)
 
     def update_notice_text(self, level_millis, oldlevel_millis):
-        # Get Ready -
-        # 3 -3500 ... 3500
-        # 2 -2500 ... -1500
-        # 1 -1500 ... -500
-        # Go! -500 ... +500
-        # [none] +500 to death
-        if oldlevel_millis < -5000 and -5000 <= level_millis:
+        #                   Get Ready -
+        # -1000... +1000    Go
+        # -500 ... +500     Go
+        # +500 ... death    [nothing]
+        if oldlevel_millis < -2000 and -2000 <= level_millis:
             self.noticetext = self.noticefont.render('Get Ready', 1, (250, 10, 10))
             self.noticetextrect = self.noticetext.get_rect(
                 centerx=virtualdisplay.screenarea.centerx,
                 centery=virtualdisplay.screenarea.centery)
-        if oldlevel_millis < -3000 and -3000 <= level_millis:
-            self.noticetext = self.noticefont.render('3', 1, (250, 10, 10))
-            self.noticetextrect = self.noticetext.get_rect(
-                centerx=virtualdisplay.screenarea.centerx,
-                centery=virtualdisplay.screenarea.centery)
-        if oldlevel_millis < -2000 and -2000 <= level_millis:
-            self.noticetext = self.noticefont.render('2', 1, (250, 10, 10))
-            self.noticetextrect = self.noticetext.get_rect(
-                centerx=virtualdisplay.screenarea.centerx,
-                centery=virtualdisplay.screenarea.centery)
         if oldlevel_millis < -1000 and -1000 <= level_millis:
-            self.noticetext = self.noticefont.render('1', 1, (250, 10, 10))
+            self.noticetext = self.noticefont.render('Set', 1, (250, 10, 10))
             self.noticetextrect = self.noticetext.get_rect(
                 centerx=virtualdisplay.screenarea.centerx,
                 centery=virtualdisplay.screenarea.centery)
