@@ -42,7 +42,7 @@ def make_level(seed=None,
                asteroid_speeds='slow',
                powerup_count=10,
                powerup_delay=1.0,
-               powerup_types='both'):
+               powerup_types='all'):
     """Create the level's details"""
 
     # convert string args to lists:
@@ -74,7 +74,7 @@ def make_level(seed=None,
         powerup_types = ['shield']
     if powerup_types == 'slow':
         powerup_types = ['slow']
-    if powerup_types == 'both':
+    if powerup_types == 'all':
         powerup_types = ['shield', 'slow']
     if powerup_types == 'none':
         powerup_types = ['none']
