@@ -88,7 +88,7 @@ class AsteroidLogger(object):
                 self.logfile.write(',')
             if rowdict.has_key(key):
                 self.logfile.write(csv_escape(str(rowdict[key])))
-        self.logfile.write('\r\n')
+        self.logfile.write('\n')
 
         # validation: check for keys in rowdict that aren't in columns
         for key in rowdict.keys():
