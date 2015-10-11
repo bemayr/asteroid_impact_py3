@@ -35,9 +35,14 @@ class GameScreen(object):
         pass
 
 class TextSprite(object):
-    """Combines surface (bitmap) for text and drawing position to make drawing static text easier"""
-    def __init__(self, textsurf, **kwargs):
-        self.textsurf = textsurf
+    """
+    Sprite-like object for text that helps positioning text in game coordinates, and
+    keeping text in position when text changes.
+    """
+    def __init__(self, font, text, color, **kwargs):
+        self.font = font
+        self.color = color
+        self.text = None
         for arg in kwargs.keys():
             # convert some args from game coordinate space to screen coordinate space
             if arg == 'x' or arg == 'left' or arg == 'right' or arg == 'centerx':
@@ -47,7 +52,15 @@ class TextSprite(object):
             else:
                 raise ValueError(
                     "TextSprite() doesn't implement support for rect keword arg '%s'" % arg)
-        self.textrect = self.textsurf.get_rect(**kwargs)
+        self.textsurf_get_rect_args = kwargs
+        self.set_text(text)
+
+    def set_text(self, text):
+        if text != self.text:
+            self.text = text
+            self.textsurf = self.font.render(self.text, 1, self.color)
+            self.textrect = self.textsurf.get_rect(**self.textsurf_get_rect_args)
+
     def draw(self, screen):
         screen.blit(self.textsurf, self.textrect)
 
@@ -88,15 +101,15 @@ class AsteroidImpactInstructionsScreen(GameScreen):
         self.sprites = pygame.sprite.Group()
 
         big_font_size = virtualdisplay.screenrect_from_gamerect(
-            pygame.Rect(0,0,72,72)).height
+            pygame.Rect(0, 0, 72, 72)).height
         small_font_size = virtualdisplay.screenrect_from_gamerect(
-            pygame.Rect(0,0,32,32)).height
+            pygame.Rect(0, 0, 32, 32)).height
         self.font_big = load_font('freesansbold.ttf', big_font_size)
         red = (250, 250, 10)
         black = (255, 255, 255)
         self.font = load_font('freesansbold.ttf', small_font_size)
         self.textsprites.append(
-            TextSprite(self.font_big.render("How to Play", 1, red),
+            TextSprite(self.font_big, "How to Play", red,
                        centerx=virtualdisplay.GAME_AREA.width/2,
                        top=0))
 
@@ -105,16 +118,17 @@ class AsteroidImpactInstructionsScreen(GameScreen):
         s.update_rect()
         self.sprites.add(s)
         self.textsprites.append(
-            TextSprite(self.font.render(
-                "Move your ship around with your mouse, picking up crystals", 1, black),
-                       left=240, top=120))
+            TextSprite(
+                self.font,
+                "Move your ship around with your mouse, picking up crystals",
+                black, left=240, top=120))
 
         s = Target()
         s.gamerect.topleft = (120, 240)
         s.update_rect()
         self.sprites.add(s)
         self.textsprites.append(TextSprite(
-            self.font.render("Pick up all the crystals", 1, black),
+            self.font, "Pick up all the crystals", black,
             left=240, top=240))
 
         s = Asteroid(diameter=32)
@@ -143,34 +157,31 @@ class AsteroidImpactInstructionsScreen(GameScreen):
                      area=asteroidgamebounds)])
         self.textsprites.append(
             TextSprite(
-                self.font.render(
-                    "Avoid the bouncing asteroids. Hit one and it's game over.",
-                    1, black),
-                left=240, top=360))
+                self.font,
+                "Avoid the bouncing asteroids. Hit one and it's game over.",
+                black, left=240, top=360))
 
         s = ShieldPowerup()
         s.gamerect.topleft = (120, 600)
         s.update_rect()
         self.sprites.add(s)
         self.textsprites.append(TextSprite(
-            self.font.render(
-                "Pick up a shield to pass through asteroids for a few seconds",
-                1, black),
-            left=240, top=600))
+            self.font,
+            "Pick up a shield to pass through asteroids for a few seconds",
+            black, left=240, top=600))
 
         s = SlowPowerup()
         s.gamerect.topleft = (120, 720)
         s.update_rect()
         self.sprites.add(s)
         self.textsprites.append(TextSprite(
-            self.font.render(
-                "Pick up a clock to slow asteroids for a few seconds",
-                1, black),
-            left=240, top=720))
+            self.font,
+            "Pick up a clock to slow asteroids for a few seconds",
+            black, left=240, top=720))
 
         if self.click_to_continue:
             self.textsprites.append(TextSprite(
-                self.font_big.render("Click To Begin", 1, red),
+                self.font_big, "Click To Begin", red,
                 centerx=virtualdisplay.GAME_AREA.width/2,
                 bottom=virtualdisplay.GAME_AREA.height))
 
@@ -188,7 +199,9 @@ class AsteroidImpactInstructionsScreen(GameScreen):
             if event.type == MOUSEBUTTONDOWN:
                 if self.click_to_continue:
                     # position cursor at the center
-                    pygame.mouse.set_pos([virtualdisplay.screenarea.centerx, virtualdisplay.screenarea.centery])
+                    pygame.mouse.set_pos([
+                        virtualdisplay.screenarea.centerx,
+                        virtualdisplay.screenarea.centery])
                     # end the instructions screen:
                     self.screenstack.pop()
                     # game.py will switch to gameplay
@@ -307,17 +320,38 @@ class AsteroidImpactGameplayScreen(GameScreen):
         # draw gamebackground on blackbackground to only have to draw black/game once per frame:
         self.blackbackground.blit(self.gamebackground, virtualdisplay.screenarea.topleft)
 
-        self.statusfont = load_font('freesansbold.ttf', 36)
-        self.statustext = self.statusfont.render('Placeholder Art', 1, (10, 10, 10))
-        self.statustextrect = self.statustext.get_rect(
-            centerx=virtualdisplay.screenarea.centerx,
-            top=virtualdisplay.screenarea.top)
+        # draw outline around game area
+        pygame.draw.rect(self.blackbackground, (250, 250, 250), virtualdisplay.screenplayarea, 1)
 
-        self.noticefont = load_font('freesansbold.ttf', 36)
-        self.noticetext = self.statusfont.render('[]', 1, (250, 10, 10))
-        self.noticetextrect = self.statustext.get_rect(
-            centerx=virtualdisplay.screenarea.centerx,
-            centery=virtualdisplay.screenarea.centery)
+        status_font_size = virtualdisplay.screenrect_from_gamerect(
+            pygame.Rect(0, 0, 64, 64)).height
+        status_font = load_font('freesansbold.ttf', status_font_size)
+        status_color = (250, 250, 10)
+
+        notice_font_size = virtualdisplay.screenrect_from_gamerect(
+            pygame.Rect(0, 0, 64, 64)).height
+        notice_font = load_font('freesansbold.ttf', notice_font_size)
+        notice_color = (250, 250, 10)
+
+        self.status_asteroids_textsprite = TextSprite(
+            status_font, "000/000", status_color,
+            x=64,
+            bottom=960)
+
+        self.status_time_textsprite = TextSprite(
+            status_font, "0.00s", status_color,
+            x=virtualdisplay.GAME_AREA.width/2,
+            bottom=960)
+
+        self.notice_textsprite = TextSprite(
+            notice_font, '', notice_color,
+            centerx=virtualdisplay.GAME_AREA.centerx,
+            centery=virtualdisplay.GAME_AREA.centery)
+
+        self.textsprites = [
+            self.status_asteroids_textsprite,
+            self.status_time_textsprite,
+            self.notice_textsprite]
 
         self.sound_death = load_sound('DeathFlash.wav')
 
@@ -361,39 +395,24 @@ class AsteroidImpactGameplayScreen(GameScreen):
         self.setup_level()
 
     def update_status_text(self):
-        """Update status text surfaces"""
-        statusblurb = '%d/%d collected %2.2f seconds'%(
-            self.target_index, len(self.target_positions), self.level_millis / 1000.)
-        self.statustext = self.statusfont.render(statusblurb, 1, (10, 10, 10))
-        self.statustextrect = self.statustext.get_rect(
-            centerx=virtualdisplay.screenarea.centerx,
-            top=virtualdisplay.screenarea.top)
+        """Update numbers in status text sprites"""
+        self.status_asteroids_textsprite.set_text(
+            '%d/%d collected'%(self.target_index, len(self.target_positions)))
+        self.status_time_textsprite.set_text('%2.2f'%(self.level_millis / 1000.))
 
     def update_notice_text(self, level_millis, oldlevel_millis):
         #                   Get Ready -
-        # -1000... +1000    Go
-        # -500 ... +500     Go
+        # -1000... -0000    Set
+        # -0000 ... +500    Go
         # +500 ... death    [nothing]
         if oldlevel_millis < -2000 and -2000 <= level_millis:
-            self.noticetext = self.noticefont.render('Get Ready', 1, (250, 10, 10))
-            self.noticetextrect = self.noticetext.get_rect(
-                centerx=virtualdisplay.screenarea.centerx,
-                centery=virtualdisplay.screenarea.centery)
+            self.notice_textsprite.set_text('Get Ready')
         if oldlevel_millis < -1000 and -1000 <= level_millis:
-            self.noticetext = self.noticefont.render('Set', 1, (250, 10, 10))
-            self.noticetextrect = self.noticetext.get_rect(
-                centerx=virtualdisplay.screenarea.centerx,
-                centery=virtualdisplay.screenarea.centery)
+            self.notice_textsprite.set_text('Set')
         if oldlevel_millis < 0 and 0 <= level_millis:
-            self.noticetext = self.noticefont.render('Go', 1, (250, 10, 10))
-            self.noticetextrect = self.noticetext.get_rect(
-                centerx=virtualdisplay.screenarea.centerx,
-                centery=virtualdisplay.screenarea.centery)
+            self.notice_textsprite.set_text('Go')
         if oldlevel_millis < 500 and 500 <= level_millis:
-            self.noticetext = self.noticefont.render('', 1, (250, 10, 10))
-            self.noticetextrect = self.noticetext.get_rect(
-                centerx=virtualdisplay.screenarea.centerx,
-                centery=virtualdisplay.screenarea.centery)
+            self.notice_textsprite.set_text('')
 
     def update(self, millis, logrowdetails, events):
         oldmlevelillis = self.level_millis
@@ -496,8 +515,11 @@ class AsteroidImpactGameplayScreen(GameScreen):
 
     def draw(self):
         self.screen.blit(self.blackbackground, (0, 0))
-        self.screen.blit(self.statustext, self.statustextrect)
+
         self.mostsprites.draw(self.screen)
         self.powerupsprites.draw(self.screen)
-        self.screen.blit(self.noticetext, self.noticetextrect)
+
+        # draw all text blocks:
+        for textsprite in self.textsprites:
+            textsprite.draw(self.screen)
 

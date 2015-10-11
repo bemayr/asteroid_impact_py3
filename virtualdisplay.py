@@ -12,10 +12,13 @@ from pygame import Rect
 
 # virtual game area is always the same "resolution" and aspect ratio
 GAME_AREA = Rect(0, 0, 640*2, 480*2)
+# virtual game play area (room that asteroids and player bounce around in)
+GAME_PLAY_AREA = Rect(0,0, GAME_AREA.width, GAME_AREA.height - 64)
 
 # screen area and transform may vary depending on screen window size
 # so these values are changed in set_screensize() below
 screenarea = GAME_AREA.copy()
+screenplayarea = screenarea.copy()
 
 # screen_from_game:
 s_f_g_w = 1.0
@@ -36,7 +39,7 @@ def set_screensize(screensize):
     Calculates the transformations to and from game space, using an aspect-preserving
     scale.
     """
-    global screenarea
+    global screenarea, screenplayarea
     global s_f_g_w, s_f_g_h, s_f_g_x, s_f_g_y
     global g_f_s_w, g_f_s_h, g_f_s_x, g_f_s_y
 
@@ -63,6 +66,8 @@ def set_screensize(screensize):
     g_f_s_h = GAME_AREA.height / screenarea.height
     g_f_s_x = GAME_AREA.x - screenarea.x * g_f_s_w
     g_f_s_y = GAME_AREA.y - screenarea.y * g_f_s_h
+    
+    screenplayarea = screenrect_from_gamerect(GAME_PLAY_AREA)
 
 
 def screenrect_from_gamerect(gamerect):

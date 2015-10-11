@@ -6,7 +6,7 @@ command-line to make your own custom levels.
 """
 
 import random
-from virtualdisplay import GAME_AREA
+from virtualdisplay import GAME_PLAY_AREA
 import argparse
 import json
 
@@ -87,8 +87,8 @@ def make_level(seed=None,
     target_positions = []
     for i in xrange(target_count):
         target_positions.append(
-            (rnd.randint(0, GAME_AREA.width - TARGET_SIZE),
-             rnd.randint(0, GAME_AREA.height - TARGET_SIZE)))
+            (rnd.randint(0, GAME_PLAY_AREA.width - TARGET_SIZE),
+             rnd.randint(0, GAME_PLAY_AREA.height - TARGET_SIZE)))
     level['target_positions'] = target_positions
 
     asteroids = []
@@ -98,16 +98,16 @@ def make_level(seed=None,
         dx, dy = make_dir(speed, rnd)
         asteroids.append(dict(
             diameter=diameter, dx=dx, dy=dy,
-            top=(rnd.randint(0, GAME_AREA.height - diameter)),
-            left=(rnd.randint(0, GAME_AREA.width - diameter))))
+            top=(rnd.randint(0, GAME_PLAY_AREA.height - diameter)),
+            left=(rnd.randint(0, GAME_PLAY_AREA.width - diameter))))
     level['asteroids'] = asteroids
 
     powerups = []
     if powerup_count > 0 and len(powerup_types) > 0:
         for i in xrange(powerup_count):
             powerup_left, powerup_top = \
-                (rnd.randint(0, GAME_AREA.width - TARGET_SIZE),
-                 rnd.randint(0, GAME_AREA.height - TARGET_SIZE))
+                (rnd.randint(0, GAME_PLAY_AREA.width - TARGET_SIZE),
+                 rnd.randint(0, GAME_PLAY_AREA.height - TARGET_SIZE))
             powerup_type = rnd.choice(powerup_types)
             powerups.append(
                 dict(type=powerup_type,

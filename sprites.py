@@ -35,14 +35,14 @@ class Cursor(VirtualGameSprite):
         pos = pygame.mouse.get_pos()
 
         # if the cursor is outside of the game area, move it back
-        if not virtualdisplay.screenarea.collidepoint(pos):
+        if not virtualdisplay.screenplayarea.collidepoint(pos):
             pos = (
                 max(
-                    min(pos[0], virtualdisplay.screenarea.right),
-                    virtualdisplay.screenarea.left),
+                    min(pos[0], virtualdisplay.screenplayarea.right),
+                    virtualdisplay.screenplayarea.left),
                 max(
-                    min(pos[1], virtualdisplay.screenarea.bottom),
-                    virtualdisplay.screenarea.top))
+                    min(pos[1], virtualdisplay.screenplayarea.bottom),
+                    virtualdisplay.screenplayarea.top))
             pygame.mouse.set_pos(pos)
 
         game_pos = virtualdisplay.gamepoint_from_screenpoint(pos)
@@ -82,9 +82,9 @@ class Asteroid(VirtualGameSprite):
             convert_alpha=True)
 
         if area:
-            self.GAME_AREA = area
+            self.GAME_PLAY_AREA = area
         else:
-            self.GAME_AREA = virtualdisplay.GAME_AREA
+            self.GAME_PLAY_AREA = virtualdisplay.GAME_PLAY_AREA
         # rect uses integer positions but I need to handle fractional pixel/frame speeds.
         # store float x/y positions here:
         self.gametopfloat = float(top)
@@ -94,13 +94,13 @@ class Asteroid(VirtualGameSprite):
 
     def update(self, millis):
         # bounce by setting sign of x or y speed if off of corresponding side of screen
-        if self.gamerect.left < self.GAME_AREA.left:
+        if self.gamerect.left < self.GAME_PLAY_AREA.left:
             self.dx = abs(self.dx)
-        if  self.gamerect.right > self.GAME_AREA.right:
+        if  self.gamerect.right > self.GAME_PLAY_AREA.right:
             self.dx = -abs(self.dx)
-        if self.gamerect.top < self.GAME_AREA.top:
+        if self.gamerect.top < self.GAME_PLAY_AREA.top:
             self.dy = abs(self.dy)
-        if self.gamerect.bottom > self.GAME_AREA.bottom:
+        if self.gamerect.bottom > self.GAME_PLAY_AREA.bottom:
             self.dy = -abs(self.dy)
 
         self.gameleftfloat += self.dx
@@ -251,10 +251,10 @@ class NonePowerup(BasePowerup):
     def __init__(self, duration=10.0):
         # configure as a circle completely covering the screen so I get picked up
         # as soon as available
-        diameter = 10*virtualdisplay.GAME_AREA.width
+        diameter = 10*virtualdisplay.GAME_PLAY_AREA.width
         self.gamerect = pygame.Rect(0,0, diameter, diameter)
-        self.gamerect.centerx = virtualdisplay.GAME_AREA.width/2
-        self.gamerect.centery = virtualdisplay.GAME_AREA.height/2
+        self.gamerect.centerx = virtualdisplay.GAME_PLAY_AREA.width/2
+        self.gamerect.centery = virtualdisplay.GAME_PLAY_AREA.height/2
         BasePowerup.__init__(
             self,
             diameter=diameter,
