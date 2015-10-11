@@ -38,6 +38,15 @@ class TextSprite(object):
     """Combines surface (bitmap) for text and drawing position to make drawing static text easier"""
     def __init__(self, textsurf, **kwargs):
         self.textsurf = textsurf
+        for arg in kwargs.keys():
+            # convert some args from game coordinate space to screen coordinate space
+            if arg == 'x' or arg == 'left' or arg == 'right' or arg == 'centerx':
+                kwargs[arg] = virtualdisplay.screenpoint_from_gamepoint((kwargs[arg], 0))[0]
+            elif arg == 'y' or arg == 'top' or arg == 'bottom' or arg == 'centery':
+                kwargs[arg] = virtualdisplay.screenpoint_from_gamepoint((0, kwargs[arg]))[1]
+            else:
+                raise ValueError(
+                    "TextSprite() doesn't implement support for rect keword arg '%s'" % arg)
         self.textrect = self.textsurf.get_rect(**kwargs)
     def draw(self, screen):
         screen.blit(self.textsurf, self.textrect)
@@ -67,43 +76,52 @@ class AsteroidImpactInstructionsScreen(GameScreen):
         self.click_to_continue = click_to_continue
         self.name = 'instructions'
         self.opaque = True
-        self.screenarea = self.screen.get_rect()
+        self.blackbackground = pygame.Surface(self.screen.get_size())
+        self.blackbackground = self.blackbackground.convert()
+        self.blackbackground.fill((0, 0, 0))
 
-        self.background = pygame.Surface(screen.get_size())
-        self.background = self.background.convert()
-        self.background.fill((250, 250, 250))
+        self.gamebackground = load_image('background4x3.jpg', size=virtualdisplay.screenarea.size)
+        # draw gamebackground on blackbackground to only have to draw black/game once per frame:
+        self.blackbackground.blit(self.gamebackground, virtualdisplay.screenarea.topleft)
 
         self.textsprites = []
         self.sprites = pygame.sprite.Group()
 
-        self.font_big = load_font('freesansbold.ttf', 36)
-        red = (250, 10, 10)
-        black = (10, 10, 10)
-        self.font = load_font('freesansbold.ttf', 16)
+        big_font_size = virtualdisplay.screenrect_from_gamerect(
+            pygame.Rect(0,0,72,72)).height
+        small_font_size = virtualdisplay.screenrect_from_gamerect(
+            pygame.Rect(0,0,32,32)).height
+        self.font_big = load_font('freesansbold.ttf', big_font_size)
+        red = (250, 250, 10)
+        black = (255, 255, 255)
+        self.font = load_font('freesansbold.ttf', small_font_size)
         self.textsprites.append(
             TextSprite(self.font_big.render("How to Play", 1, red),
-                       centerx=self.screenarea.width/2, top=0))
+                       centerx=virtualdisplay.GAME_AREA.width/2,
+                       top=0))
 
         s = Cursor()
-        s.rect.topleft = (60, 60)
+        s.gamerect.topleft = (120, 120)
+        s.update_rect()
         self.sprites.add(s)
         self.textsprites.append(
             TextSprite(self.font.render(
                 "Move your ship around with your mouse, picking up crystals", 1, black),
-                       left=120, top=60))
+                       left=240, top=120))
 
         s = Target()
-        s.rect.topleft = (60, 120)
+        s.gamerect.topleft = (120, 240)
+        s.update_rect()
         self.sprites.add(s)
         self.textsprites.append(TextSprite(
             self.font.render("Pick up all the crystals", 1, black),
-            left=120, top=120))
+            left=240, top=240))
 
-        s = Asteroid(diameter=16)
-        s.rect.topleft = (60, 180)
+        s = Asteroid(diameter=32)
+        s.gamerect.topleft = (120, 360)
+        s.update_rect()
         self.sprites.add(s)
-        asteroidscreenbounds = pygame.Rect(60, 200, 480-60-60, 80)
-        asteroidgamebounds = virtualdisplay.gamerect_from_screenrect(asteroidscreenbounds)
+        asteroidgamebounds = pygame.Rect(120, 400, 960-120-120, 160)
         self.asteroids = pygame.sprite.Group([
             Asteroid(diameter=64,
                      dx=1.5,
@@ -128,34 +146,37 @@ class AsteroidImpactInstructionsScreen(GameScreen):
                 self.font.render(
                     "Avoid the bouncing asteroids. Hit one and it's game over.",
                     1, black),
-                left=120, top=180))
+                left=240, top=360))
 
         s = ShieldPowerup()
-        s.rect.topleft = (60, 300)
+        s.gamerect.topleft = (120, 600)
+        s.update_rect()
         self.sprites.add(s)
         self.textsprites.append(TextSprite(
             self.font.render(
                 "Pick up a shield to pass through asteroids for a few seconds",
                 1, black),
-            left=120, top=300))
+            left=240, top=600))
 
         s = SlowPowerup()
-        s.rect.topleft = (60, 360)
+        s.gamerect.topleft = (120, 720)
+        s.update_rect()
         self.sprites.add(s)
         self.textsprites.append(TextSprite(
             self.font.render(
                 "Pick up a clock to slow asteroids for a few seconds",
                 1, black),
-            left=120, top=360))
+            left=240, top=720))
 
         if self.click_to_continue:
             self.textsprites.append(TextSprite(
-                self.font_big.render("Click To Begin", 1, (250, 10, 10)),
-                centerx=self.screenarea.width/2, bottom=self.screenarea.height))
+                self.font_big.render("Click To Begin", 1, red),
+                centerx=virtualdisplay.GAME_AREA.width/2,
+                bottom=virtualdisplay.GAME_AREA.height))
 
     def draw(self):
         # draw background
-        self.screen.blit(self.background, (0, 0))
+        self.screen.blit(self.blackbackground, (0, 0))
         # draw all text blocks:
         for textsprite in self.textsprites:
             textsprite.draw(self.screen)
@@ -167,7 +188,7 @@ class AsteroidImpactInstructionsScreen(GameScreen):
             if event.type == MOUSEBUTTONDOWN:
                 if self.click_to_continue:
                     # position cursor at the center
-                    pygame.mouse.set_pos([self.screenarea.centerx, self.screenarea.centery])
+                    pygame.mouse.set_pos([virtualdisplay.screenarea.centerx, virtualdisplay.screenarea.centery])
                     # end the instructions screen:
                     self.screenstack.pop()
                     # game.py will switch to gameplay

@@ -74,6 +74,13 @@ def screenrect_from_gamerect(gamerect):
         gamerect.width * s_f_g_w,
         gamerect.height * s_f_g_h)
 
+def screenpoint_from_gamepoint(gamepoint):
+    """Returns the corresponding (transformed) screen space point for the supplied
+    point in game-space"""
+    return (
+        s_f_g_x + gamepoint[0] * s_f_g_w,
+        s_f_g_y + gamepoint[1] * s_f_g_h)
+
 def gamerect_from_screenrect(screenrect):
     """Returns the corresponding (transformed) game space rectangle for the supplied
     rectangle in screen-space"""
