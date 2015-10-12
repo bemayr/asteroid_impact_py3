@@ -212,7 +212,7 @@ class GameModeManager(object):
         if pygame.mixer:
             resources.load_music('through space.ogg')
             pygame.mixer.music.set_volume(resources.music_volume)
-            pygame.mixer.music.play()
+            pygame.mixer.music.play(-1)
 
         asteroidlogger = AsteroidLogger(self.args.log_filename, self.args.log_overwrite == 'true')
         logrowdetails = {}
