@@ -49,9 +49,8 @@ class AsteroidLogger(object):
             # game timer in milliseconds playing this level.
             # This starts negative for the countdown. Collisions and power-ups become active at 0
             'level_millis',
-            # number of level in in list of levels for this game mode step
-            # starts counting at 1
-            'level_number',
+            # name of level JSON file
+            'level_name',
             # 1 for first attempt at this level, incrementing on each failure of the same level
             'level_attempt',
             # countdown, playing, completed or dead

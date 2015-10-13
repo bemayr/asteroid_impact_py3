@@ -202,7 +202,9 @@ class GameModeManager(object):
         levels = []
         for levelfile in levellist['levels']:
             with open(path.join(dir, levelfile)) as f:
-                levels.append(json.load(f))
+                level = json.load(f)
+                level['level_name'] = levelfile
+                levels.append(level)
 
         return levels
 

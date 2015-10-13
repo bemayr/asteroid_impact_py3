@@ -490,7 +490,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 
         self.update_status_text()
         logrowdetails['level_millis'] = self.level_millis
-        logrowdetails['level_number'] = self.level_index + 1
+        logrowdetails['level_name'] = self.level_list[self.level_index]['level_name']
         logrowdetails['level_attempt'] = self.level_attempt + 1
         logrowdetails['level_state'] = levelstate
 
