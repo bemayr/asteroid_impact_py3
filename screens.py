@@ -3,7 +3,7 @@ Game screens for AsteroidImpact
 """
 
 from sprites import *
-from resources import load_font, load_image
+from resources import load_font, load_image, music_volume
 from pygame.locals import *
 import virtualdisplay
 
@@ -78,6 +78,14 @@ class BlackScreen(GameScreen):
         self.background = pygame.Surface(screen.get_size())
         self.background = self.background.convert()
         self.background.fill((0, 0, 0))
+
+        self.first_update = True
+
+    def update(self, millis, logrowdetails, events):
+        if self.first_update:
+            self.first_update = False
+            # don't play music during the black screen
+            pygame.mixer.music.set_volume(0.0)
 
     def draw(self):
         # draw background
@@ -185,6 +193,8 @@ class AsteroidImpactInstructionsScreen(GameScreen):
                 centerx=virtualdisplay.GAME_AREA.width/2,
                 bottom=virtualdisplay.GAME_AREA.height))
 
+        self.first_update = True
+
     def draw(self):
         # draw background
         self.screen.blit(self.blackbackground, (0, 0))
@@ -195,6 +205,11 @@ class AsteroidImpactInstructionsScreen(GameScreen):
         self.asteroids.draw(self.screen)
 
     def update(self, millis, logrowdetails, events):
+        if self.first_update:
+            self.first_update = False
+            # play music during the instructions at specified volume:
+            pygame.mixer.music.set_volume(music_volume)
+
         for event in events:
             if event.type == MOUSEBUTTONDOWN:
                 if self.click_to_continue:
@@ -365,6 +380,8 @@ class AsteroidImpactGameplayScreen(GameScreen):
         self.level_attempt = -1
         self.setup_level()
 
+        self.first_update = True
+
     def setup_level(self):
         leveldetails = self.level_list[self.level_index]
         self.level_millis = -2000 # for the 'get ready' and level countdown
@@ -417,6 +434,11 @@ class AsteroidImpactGameplayScreen(GameScreen):
     def update(self, millis, logrowdetails, events):
         oldmlevelillis = self.level_millis
         self.level_millis += millis
+
+        if self.first_update:
+            self.first_update = False
+            # play music during the instructions at specified volume:
+            pygame.mixer.music.set_volume(music_volume)
 
         levelstate = 'countdown' if self.level_millis < 0 else 'playing'
 
