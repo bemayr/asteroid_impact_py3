@@ -148,7 +148,7 @@ if __name__ == '__main__':
                         help='Delay in seconds before first powerup is available.')
     parser.add_argument('--powerup-delay', type=float, default=1.0,
                         help='Delay in seconds after powerup is used before next one becomes available.')
-    parser.add_argument('--powerup-types', choices=['shield', 'slow', 'all', 'none'], default='both',
+    parser.add_argument('--powerup-types', choices=['shield', 'slow', 'all', 'none'], default='all',
                         help='Types of powerups that are in level.')
 
     args = parser.parse_args()
