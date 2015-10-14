@@ -1,0 +1,258 @@
+<h1>Asteroid Impact</h1>
+<p>Asteroid Impact is a clone of <a href="http://loveisgames.com/Action/1979/Star-Reaction">Star Reaction</a> made for the Media Neuroscience Lab of UC Santa Barbara to allow them to run the game with randomness removed, collect additional information from the game and to reduce the chance participants deviate from the instructions by choosing the wrong level or clicking outside the game area.</p>
+<h2>Gameplay</h2>
+<p>The player moves their ship around on screen with a mouse to collect crystals which appear one at a time. During this time the player avoids one or more large asteroids that move in a straight line and bounce off the edges of the screen, but not other asteroids. The player can pick up a shield to temporarily be invulnerable from hitting the asteroids, or a clock which will temproarily slow the asteroids to a crawl. Once all the crystals for the level are collected, the player proceeds to the next more difficult level. If the player is hit by an asteroid the level restarts from the beginning.</p>
+<h2>Game Logging</h2>
+<p>This game logs the player's cursor position and the status of power-ups every frame and much more. See the Log Columns section for more details.</p>
+<h2>Custom Levels</h2>
+<p>The new levels can be created and put into a sequence for the player to complete. The new levels can have different asteriod placement, speed, number and location of crystals, number size and types of power-ups.</p>
+<p>The sequence of levels can be built to have a slow progression or variation or repeat the same level over and over.</p>
+<h2>Game 'Script'</h2>
+<p>To allow the researchers to combine this game with other instructions, the game can be run with a script specified which specifies a series of steps. Each step either shows instructions, gameplay, or a black screen, and each step has a specified duration in seconds. The gameplay step can specify a level list to allow the researcher to set up a sequence where easy levels are played before and after hard ones.</p>
+<h1>Command-Line Options</h1>
+<p><code>game.py</code> can be run with the following command-line options.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Values</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-h</code>, <code>--help</code></td>
+<td></td>
+<td></td>
+<td>Show help message and exit</td>
+</tr>
+<tr>
+<td>--music-volume MUSIC_VOLUME</td>
+<td>0.0 to 1.0</td>
+<td>1.0</td>
+<td>Music Volume, 1.0 for full</td>
+</tr>
+<tr>
+<td>--effects-volume EFFECTS_VOLUME</td>
+<td>0.0 to 1.0</td>
+<td>1.0</td>
+<td>Sound effects volume, 1.0 for full</td>
+</tr>
+<tr>
+<td>--display-width DISPLAY_WIDTH</td>
+<td>320 to 2560</td>
+<td>640</td>
+<td>Width of window or full screen mode.</td>
+</tr>
+<tr>
+<td>--display-height DISPLAY_HEIGHT</td>
+<td>320 to 1920</td>
+<td>480</td>
+<td>Height of window or full screen mode.</td>
+</tr>
+<tr>
+<td>--window-x WINDOW_X</td>
+<td>0 to 2560</td>
+<td>None</td>
+<td>X position of window. The window will be positioned where specified only when both X and Y are specified.</td>
+</tr>
+<tr>
+<td>--window-y WINDOW_Y</td>
+<td>0 to 1920</td>
+<td>None</td>
+<td>Y position of window. The window will be positioned where specified only when both X and Y are specified.</td>
+</tr>
+<tr>
+<td>--display-mode {windowed,fullscreen}</td>
+<td><code>windowed</code> or <code>fullscreen</code></td>
+<td>windowed</td>
+<td>Whether to run windowed or fullscreen.</td>
+</tr>
+<tr>
+<td>--script-json SCRIPT_JSON</td>
+<td>json filename</td>
+<td>None</td>
+<td>script.json file listing all steps such as instructions, gameplay (with levels) and black screens. See samplescript.json for example, or documentation below.</td>
+</tr>
+<tr>
+<td>--levels-json LEVELS_JSON</td>
+<td>json filename</td>
+<td>None</td>
+<td>levellist.json file listing all levels to complete. Ignored when specifying --script-json. See sample below.</td>
+</tr>
+<tr>
+<td>--subject-number SUBJECT_NUMBER</td>
+<td>text</td>
+<td>[blank]</td>
+<td>Subject number to include in log.</td>
+</tr>
+<tr>
+<td>--subject-run SUBJECT_RUN</td>
+<td>text</td>
+<td>[blank]</td>
+<td>Subject run number to include in the log.</td>
+</tr>
+<tr>
+<td>--log-filename LOG_FILENAME</td>
+<td>CSV filename</td>
+<td>None</td>
+<td>File to save log CSV file to with per-frame data.</td>
+</tr>
+<tr>
+<td>--log-overwrite {true,false}</td>
+<td><code>true</code> or <code>false</code></td>
+<td>false</td>
+<td>Whether to overwrite pre-existing log file.</td>
+</tr>
+</tbody>
+</table>
+<h2>levels-json</h2>
+<p>The levels-json file, used for the <code>--levels-json</code> command-line option, or inside of the <code>--script-json</code> json file lists each level file in order. The individual level files are expected to be in the same directory as the json file listing them.</p>
+<p>Below is a sample json file listing the standard levels.</p>
+<pre><code class="language-json">{
+    "<span class="hljs-attribute">levels</span>": <span class="hljs-value">[
+        <span class="hljs-string">"standard01.json"</span>,
+        <span class="hljs-string">"standard02.json"</span>,
+        <span class="hljs-string">"standard03.json"</span>,
+        <span class="hljs-string">"standard04.json"</span>,
+        <span class="hljs-string">"standard05.json"</span>,
+        <span class="hljs-string">"standard06.json"</span>,
+        <span class="hljs-string">"standard07.json"</span>,
+        <span class="hljs-string">"standard08.json"</span>,
+        <span class="hljs-string">"standard09.json"</span>,
+        <span class="hljs-string">"standard10.json"</span>,
+        <span class="hljs-string">"standard11.json"</span>,
+        <span class="hljs-string">"standard12.json"</span>,
+        <span class="hljs-string">"standard13.json"</span>
+    ]
+</span>}
+</code></pre>
+<h2>Dependencies</h2>
+<p>The standalone version of Asteroid Impact should not require additional software to run.</p>
+<p>Asteroid Impact requires the following to run from source:</p>
+<ul>
+<li>Python 2.7 available from <a href="http://python.org">http://python.org</a></li>
+<li>PyGame 1.9.1 available from <a href="http://pygame.org">http://pygame.org</a></li>
+</ul>
+<p>This has primarily been developed been using 32-bit python 2.7.10 on Windows 8.1 with PyGame 1.9.1 for 32 bit python.</p>
+<p>If you want to build a standalone executable, you will need the following:</p>
+<ul>
+<li>Python 2.7 available from <a href="http://python.org">http://python.org</a></li>
+<li>PyGame 1.9.1 available from <a href="http://pygame.org">http://pygame.org</a></li>
+<li>PyInstaller availabe from <a href="http://www.pyinstaller.org">http://www.pyinstaller.org</a></li>
+</ul>
+<p>To generate Html documentation</p>
+<ul>
+<li>pydoc should be included with the standard python distribution.</li>
+</ul>
+<h2>FAQ</h2>
+<p>The below topics are answers to questions I expect to be common.</p>
+<h3>Quit the game</h3>
+<p>While the game is running, you can quit by pressing alt+f4 or command+q.</p>
+<h3>Unlock the cursor from the game</h3>
+<p>While the game is running, you can unlock the cursor from the game or lock it again by pressing alt+c or option+c.</p>
+<h3>Set the volume</h3>
+<p>Run <code>game.py</code> with these arguments, modified as needed: <code>--effects-volume 1.0 --music-volume 1.0</code></p>
+<h3>Run full screen</h3>
+<p>Run <code>game.py</code> with these arguments, modified as needed: <code>--display-width 800 --display-height 600 --display-mode fullscreen</code></p>
+<h3>Set the window size</h3>
+<p>Run <code>game.py</code> with these arguments, modified as needed: <code>--display-width 800 --display-height 600</code></p>
+<h3>Set the window position</h3>
+<p>Run <code>game.py</code> with these arguments, modifed as needed <code>--display-width 800 --display-height 600 --window-x 50 --window-y 10</code></p>
+<p>X and Y values of 0 should put your window at the top left of the primary display. X and Y are in pixels.</p>
+<h3>Log details to a file</h3>
+<p>Run <code>game.py</code> with these arguments, modifed as needed <code>--log-file sample.csv --log-overwrite false</code></p>
+<h3>Repeat the same level over and over for 200 seconds</h3>
+<p>When the player completes the last level in a list of levels they next play the first level in the list. To repeat the same level you can create a list of just the one level.</p>
+<p>To limit the player to playing for 200 seconds you must specify a script that limits the gameplay step to 200 seconds.</p>
+<p>Create a new level list JSON file named samplerepeatinglevel.json and put it in the levels folder. It should have the following contents:</p>
+<pre><code class="language-json">{
+    "<span class="hljs-attribute">levels</span>": <span class="hljs-value">[
+        <span class="hljs-string">"standard01.json"</span>,
+    ]
+</span>}
+</code></pre>
+<p>Create a new script JSON file named samplerepeatinglevelscript.json and put it next to the game. It should have the following contents:</p>
+<pre><code class="language-json">[
+    {
+        "<span class="hljs-attribute">action</span>": <span class="hljs-value"><span class="hljs-string">"instructions"</span></span>,
+        "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">10.0</span>
+    </span>},
+    {
+        "<span class="hljs-attribute">action</span>": <span class="hljs-value"><span class="hljs-string">"game"</span></span>,
+        "<span class="hljs-attribute">levels</span>": <span class="hljs-value"><span class="hljs-string">"levels/samplerepeatinglevel.json"</span></span>,
+        "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">200.0</span>
+    </span>}
+]
+</code></pre>
+<p>run <code>game.py</code> with these arguments: <code>--script-json samplerepeatinglevelscript.json</code></p>
+<p>The script json file is described in more detail in <code>docs/scriptjson.html</code></p>
+<h3>Create new levels</h3>
+<p>Use <code>makelevel.py</code> to create new levels. For example, with the arguments below a new level will be saved to <code>levels/mynewlevel.json</code> with 10 crystals, 4 asteroids that are small, move at up to a medium speed, with a looping list of 10 power-up positions of all types that don't become available until 2 seconds into the level or 3 seconds after the previous one was used.</p>
+<p><code>--target-count 10 --asteroid-count 4 --asteroid-sizes small --asteroid-speeds medium --powerup-count 10 --powerup-types all --powerup-initial-delay 2.0 --powerup-delay 3.0 --file levels/mynewlevel.json</code></p>
+<p>See docs/makelevel.html for more details on the options for <code>makelevel.py</code></p>
+<h3>Change the artwork</h3>
+<p>Edit or replace the corresponding image in the data directory. You don't need to keep the same resolution, the graphics are scaled up or down to their screen resolution when the game is loaded. If the file name changes, make the corresponding edit to the sprite in <code>sprites.py</code>.</p>
+<h3>Replace the sounds</h3>
+<p>Overwrite the sound with a .wav file sampled at 22050 samples/second. A wav file with a different sample rate will play faster or slower in the game than it should.</p>
+<h2>Log CSV Columns</h2>
+<ul>
+<li><code>subject_number</code> Number for this research participant (subject) specified on the command-line.</li>
+<li><code>subject_run</code> Run number for this subject specified on command-line.</li>
+<li><code>total_millis</code> Milliseconds since application start.</li>
+<li><code>step_number</code> Number of step in sequence, for example 1 for instructions then 2 for game.</li>
+<li><code>step_millis</code> Milliseconds elapsed during this step. This resets to 0 on step change.</li>
+<li><code>top_screen</code> Topmost screen name. Changes when mode change, but also inside of a mode such as the level complete and game over screen. Some values to expect are <code>instructions</code>, <code>gameplay</code>, <code>level_complete</code></li>
+<li><code>level_millis</code> Game timer in milliseconds playing this level. This starts negative for the countdown. Collisions and power-ups become active at 0.</li>
+<li><code>level_name</code> Name of level JSON file.</li>
+<li><code>level_attempt</code> 1 for first attempt at this level, incrementing on each failure of the same level.</li>
+<li><code>level_state</code> Countdown, playing, completed or dead.</li>
+<li><code>targets_collected</code> Number of targets collected in this level.</li>
+<li><code>target_x</code>, <code>target_y</code> Center position of current target in game coordinates.</li>
+<li><code>active_powerup</code> The currently active powerup. <code>none</code>, <code>slow</code> or <code>shield</code></li>
+<li><code>powerup_x</code>, <code>powerup_y</code>, <code>powerup_diameter</code>, <code>powerup_type</code> Are for the on-screen powerup. These shouldn`t be trusted while a powerup is active because active power-ups move around. A shield follows on top of the cursor and the slow powerup moves offscreen.</li>
+<li><code>cursor_x</code>, <code>cursor_y</code> X and Y position of the center of the ship that is controlled by the player.</li>
+</ul>
+<h1>Code Introduction</h1>
+<p>The code is split along a handful of files described below. Before diving in, please read the overview of how a single frame works to get an idea where the logic for each lives.</p>
+<h2>Source Files and Directories</h2>
+<ul>
+<li><code>doc/</code> Documentation such as this file.</li>
+<li><code>data/</code> Game assets such as images, sounds and music.</li>
+<li><code>levels/</code> Standard game level JSON files.</li>
+<li><code>raw_data/</code> Source files for some game assets. Images with layers, or higher bitrate audio files live here, and are flattened or resampled to the ones in the <code>data/</code> folder. This folder is not required to run the game and is not included with the standalone exe build.</li>
+<li><code>game.py</code> Entry point for game, command-line options, game loop.</li>
+<li><code>logger.py</code> Saves each row to CSV file.</li>
+<li><code>makelevel.py</code> Used to create a new level from command-line.</li>
+<li><code>makestandardlevels.py</code> Creates the standard levels in the <code>levels/</code> folder.</li>
+<li><code>resources.py</code> Game asset (image, sound, music) loading and caching.</li>
+<li><code>screens.py</code> Game screens such as instructions, black screen, and gameplay. Most of the game logic happens in the gameplay screen.</li>
+<li><code>sprites.py</code> Sprite logic for movement and behavior of asteroids and powerups.</li>
+<li><code>virtualdisplay.py</code> Converts from game coordinates to screen coordinates and back to allow the game to run at multiple resolutions.</li>
+<li><code>pyinstaller-build-windows.bat</code> Using pyinstaller, create an exe of the game that doesn't require a python installation.</li>
+</ul>
+<h2>Screen Stack</h2>
+<p>The game screens are a stack of windows on top of each other like modal dialog windows. Only the topmost one is in charge of deciding what happens in this game tick.</p>
+<p>These are a stack of windows to make the transition between menus easier. For example a game might have a main menu, and a settings screen, gameplay, and a pause screen. The main screen would open the gameplay on top of the main screen, so when gameplay ends you'd end up back at the menu. This makes it easier in the future to add level select and return to them when leaving the game. The same is true for having a pause screen on top of gameplay or a settings screen accessible from both the pause menu and main menu.</p>
+<h2>The process of a typical frame</h2>
+<p>This starts in the main game loop is in [GameModeManager.gameloop()] in <code>game.py</code></p>
+<ol>
+<li>we wait 1/60th of a second (clock.tick_busy_loop(60)</li>
+<li>Set up known frame log row details</li>
+<li>Check for global input events (quitting the game)</li>
+<li>Update the topmost game screen. When the game is running this calls AsteroidImpactGameplayScreen.update()
+<ol>
+<li>AsteroidImpactGameplayScreen.update() works as follows:</li>
+<li>Handle gameplay input events.</li>
+<li>Update the moving sprites for the current frame. Every sprite has an update() method which is called here.</li>
+<li>If we aren't at the level countdown, check for collisions with powerup, next target (next crystal), and all asteroids. These may advance the player to the next levels, enable a powerup (by calling .activate() on the sprite), or notice the player has died.</li>
+</ol>
+</li>
+<li>Then, back in GameModeManager.gameloop() we check for if we've exceeded the duration for this step, for example if the gameplay was limited to 60 seconds and we've exceeded that time. If so we wipe out the screen stack and build it again for the next step.</li>
+<li>Save the details to the log file</li>
+<li>Draw the currently visible screens.</li>
+</ol>
+<h2>Game coordinates</h2>
+<p>To allow the game to scale up and down, the gameplay happens in its own coordinate space which is scaled up or down for the current screen or window. This allows the screen resoloution to change but the game objects will still move and appear in the same way.</p>
+<p>The game play area is 1280 units wide, 896 units tall. The center of the window or screen would be at (640,480) and the top left is (0,0).</p>

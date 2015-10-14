@@ -39,9 +39,9 @@ from logger import AsteroidLogger
 # command-line arguments:
 parser = argparse.ArgumentParser(description='Run Asteroid Impact game.')
 parser.add_argument('--music-volume', type=float, default=1.0,
-                    help='music volume, 1.0 for full')
+                    help='Music volume, 1.0 for full.')
 parser.add_argument('--effects-volume', type=float, default=1.0,
-                    help='sound effects volume, 1.0 for full')
+                    help='Sound effects volume, 1.0 for full.')
 parser.add_argument('--display-width', type=int, default=640,
                     help='Width of window or full screen mode.')
 parser.add_argument('--display-height', type=int, default=480,
@@ -52,7 +52,7 @@ parser.add_argument('--window-y', type=int, default=None,
                     help='Y position of window.')
 parser.add_argument('--display-mode', choices=['windowed', 'fullscreen'],
                     default='windowed',
-                    help='Whether to run windowed or fullscreen')
+                    help='Whether to run windowed or fullscreen.')
 parser.add_argument('--script-json', type=str, default=None,
                     help=('script.json file listing all steps such as instructions, ' +
                           'gameplay (with levels) and black screens. See ' +
