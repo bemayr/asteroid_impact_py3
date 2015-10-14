@@ -41,6 +41,7 @@ def make_level(seed=None,
                asteroid_sizes='large',
                asteroid_speeds='slow',
                powerup_count=10,
+               powerup_initial_delay=0.0,
                powerup_delay=1.0,
                powerup_types='all'):
     """Create the level's details"""
@@ -104,6 +105,8 @@ def make_level(seed=None,
 
     powerups = []
     if powerup_count > 0 and len(powerup_types) > 0:
+        if powerup_initial_delay > 0:
+            powerups.append(dict(type='none', duration=powerup_initial_delay))
         for i in xrange(powerup_count):
             powerup_left, powerup_top = \
                 (rnd.randint(0, GAME_PLAY_AREA.width - TARGET_SIZE),
@@ -141,6 +144,8 @@ if __name__ == '__main__':
                         help='Approximate speed of asteroids.')
     parser.add_argument('--powerup-count', type=int, default=5,
                         help='Number of asteroids to avoid.')
+    parser.add_argument('--powerup-initial-delay', type=float, default=0.0,
+                        help='Delay in seconds before first powerup is available.')
     parser.add_argument('--powerup-delay', type=float, default=1.0,
                         help='Delay in seconds after powerup is used before next one becomes available.')
     parser.add_argument('--powerup-types', choices=['shield', 'slow', 'all', 'none'], default='both',
@@ -155,6 +160,7 @@ if __name__ == '__main__':
         asteroid_sizes=args.asteroid_sizes,
         asteroid_speeds=args.asteroid_speeds,
         powerup_count=args.powerup_count,
+        powerup_initial_delay=args.powerup_initial_delay,
         powerup_delay=args.powerup_delay,
         powerup_types=args.powerup_types)
 
