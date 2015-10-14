@@ -1,0 +1,99 @@
+<h1><a href="http://makelevel.py">makelevel.py</a></h1>
+<p><a href="http://makelevel.py">makelevel.py</a> is a python script to create new level JSON files for AsteroidImpact.</p>
+<p>It requires Python 2.7 and PyGame 1.9.1</p>
+<p>see <a href="http://leveljson.md">leveljson.md</a> for format details of the generated level JSON files.</p>
+<p>See section down below for how levels are created.</p>
+<h2>command-line options</h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Values</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-h</code>, <code>--help</code></td>
+<td></td>
+<td></td>
+<td>Show help message and exit</td>
+</tr>
+<tr>
+<td>--file FILE</td>
+<td></td>
+<td>[none]</td>
+<td>File to save level json to.</td>
+</tr>
+<tr>
+<td>--seed SEED</td>
+<td>integer</td>
+<td>[current time]</td>
+<td>Random number seed. If none supplied will use current time.</td>
+</tr>
+<tr>
+<td>--target-count TARGET_COUNT</td>
+<td>integer</td>
+<td>5</td>
+<td>Number of crystals to pick up.</td>
+</tr>
+<tr>
+<td>--asteroid-count ASTEROID_COUNT</td>
+<td>integer</td>
+<td>5</td>
+<td>Number of asteroids to avoid.</td>
+</tr>
+<tr>
+<td>--asteroid-sizes {small,medium,large,varied}</td>
+<td>one of {small,medium,large,varied}</td>
+<td>large</td>
+<td>Approximate size of asteroids.</td>
+</tr>
+<tr>
+<td>--asteroid-speeds {slow,medium,fast,extreme}</td>
+<td>one of {slow,medium,fast,extreme}</td>
+<td>slow</td>
+<td>Approximate speed of asteroids.</td>
+</tr>
+<tr>
+<td>--powerup-count POWERUP_COUNT</td>
+<td>integer</td>
+<td>5</td>
+<td>Number of distinct power-ups to create for the player to pick up.</td>
+</tr>
+<tr>
+<td>--powerup-initial-delay POWERUP_INITIAL_DELAY</td>
+<td>float</td>
+<td>0.0</td>
+<td>Delay in seconds before first powerup is available.</td>
+</tr>
+<tr>
+<td>--powerup-delay POWERUP_DELAY</td>
+<td>float</td>
+<td>1.0</td>
+<td>Delay in seconds after powerup is used before next one becomes available.</td>
+</tr>
+<tr>
+<td>--powerup-types {shield,slow,all,none}</td>
+<td>one of {shield,slow,all,none}</td>
+<td>all</td>
+<td>Types of powerups that are in level.</td>
+</tr>
+</tbody>
+</table>
+<h1>creation process</h1>
+<p>This script creates levels as follows.</p>
+<ol>
+<li>Seed random number generator with supplied seed.</li>
+<li>Choose random positions in the game area for the crystals to pick up.</li>
+<li>Choose random diameter (from list of options at specified size), speed, and location for each asteroid. Choosing a speed avoids finding purely horizontal or vertical movement by doing the following
+<ol>
+<li>Choose maximum speed from list chosen by option.</li>
+<li>Find random integer for x movement and y movement ranging from 1 to speed, inclusive</li>
+<li>Find random sign for x and y movement.</li>
+</ol>
+</li>
+<li>Start the power-up list with a power-up delaying power-up if chosen in the options</li>
+<li>Add each power-up, with a randomly chosen type from the list at a randomly chosen position. After each power-up add a power-up delaying power-up of the specified <code>--powerup-delay</code>.</li>
+</ol>

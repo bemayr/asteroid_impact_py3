@@ -143,7 +143,7 @@ if __name__ == '__main__':
     parser.add_argument('--asteroid-speeds', choices=['slow', 'medium', 'fast', 'extreme'], default='slow',
                         help='Approximate speed of asteroids.')
     parser.add_argument('--powerup-count', type=int, default=5,
-                        help='Number of asteroids to avoid.')
+                        help='Number of distinct power-ups to create for the player to pick up.')
     parser.add_argument('--powerup-initial-delay', type=float, default=0.0,
                         help='Delay in seconds before first powerup is available.')
     parser.add_argument('--powerup-delay', type=float, default=1.0,
