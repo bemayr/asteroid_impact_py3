@@ -117,7 +117,7 @@ def make_level(seed=None,
                      diameter=TARGET_SIZE,
                      left=powerup_left,
                      top=powerup_top))
-            if powerup_delay > 0.0:
+            if powerup_delay > 0.0 and powerup_initial_delay <= 0.0:
                 powerups.append(
                     dict(type='none',
                          duration=powerup_delay))
