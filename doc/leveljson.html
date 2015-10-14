@@ -1,0 +1,228 @@
+<h1>Single Level JSON</h1>
+<p>This page describes the structure and meaning of the JSON file that specifies the details for a single level. Typically you wouldn't generate these files yourself, but instead use <code>makelevel.py</code> or make your own level generator by copying and modifying <code>standardlevels.py</code></p>
+<h2>Game Coordinates</h2>
+<p>The sizes, speeds, and positions in this file are specified in game coordinates, not pixels. This allows the screen resoloution to change but the game objects will still move and appear in the same way.</p>
+<p>The game play area is 1280 units wide, 896 units tall.</p>
+<h2>Top level</h2>
+<p>The single level JSON file's top level is a dictionary with the following 3 keys. The value for each is a list further described below.</p>
+<ul>
+<li><code>asteroids</code> List of asteroids in level to avoid.</li>
+<li><code>target_positions</code> List of positions for targets (crystals) for the player to pick up.</li>
+<li><code>powerup_list</code> List of powerups that are available for the player to pick up.</li>
+</ul>
+<h3><code>asteroids</code> List</h3>
+<p>Each entry in the list of <code>asteroids</code> is a dictionary with the following keys:</p>
+<ul>
+<li><code>diameter</code> The diameter of the asteroid in game units. This must be an integer.</li>
+<li><code>top</code> The distance of the top of the asteroid from the top edge of the play area in game units. This sets the initial position when the asteroids start moving during the level countdown. This must be an integer.</li>
+<li><code>left</code> The distance of the left of the asteroid from the left edge of the play area in game units. This sets the initial position when the asteroids start moving during the level countdown. This must be an integer.</li>
+<li><code>dx</code> distance along x moved per frame. This may be positive or negative or zero, but generated levels don't specify zero X or Y speeds. The sign of the speed is only used for the initial direction of the asteroid. This may be an integer or float.</li>
+<li><code>dy</code> distance along y moved per frame. This may be positive or negative or zero, but generated levels don't specify zero X or Y speeds. The sign of the speed is only used for the initial direction of the asteroid. This may be an integer or float.</li>
+</ul>
+<p><code>top</code>, <code>left</code>, <code>dx</code>, <code>dy</code> specify the initial positions and direction of motion when the asteroids start moving during the level countdown. Both the position and the speeds change during gameplay, by moving, bouncing off edges, or being slowed down. The during-gameplay values are not saved back to the level.</p>
+<h3><code>target_positions</code> List</h3>
+<p>The <code>target_positions</code> must be set to a list of 2-entry lists. The 2-entry lists represent <code>[left, top]</code> positions of the crystals to be picked up in the level. By default the crystals are 32 game units in diameter, and the level JSON currently has no way to specify otherwise.</p>
+<h3><code>powerup_list</code> List</h3>
+<p>Powerups will spawn in order, starting with the first one in the list and looping back to the first after using up the last powerup. The next powerup spawns after the player picks up a powerup and its expires after its delay. None powerups are picked up instantly (and invisibly) so are used to introduce a delay after one powerup is used before the next is available. For example, to have a 3s delay between the player's shield ending and another becoming available, the list should have a shield, none with 3s delay, then another shield.</p>
+<p>There must be at least one entry in this list. If you don't want the player to have a powerup in this level, put a <code>"type":"none"</code> powerup with a delay in the list instead.</p>
+<p>The <code>powerup_list</code> is a list of objects with the keys listed below.</p>
+<ul>
+<li><code>type</code> must be one of <code>shield</code>, <code>slow</code>, or <code>none</code></li>
+<li><code>diameter</code> usually 32 game units for <code>shield</code> or <code>slow</code>. Don't specify this on a <code>"type":"none"</code> powerup.</li>
+<li><code>left</code> The distance from the left edge of the powerup to the left edge of the game play area.</li>
+<li><code>top</code> The distance from the left edge of the powerup to the left edge of the game play area.</li>
+<li><code>duration</code> The number of seconds this powerup lasts, as a number. This is required for, and should only be specified on <code>"type":"none"</code> powerups.</li>
+</ul>
+<h2>Sample file</h2>
+<pre><code class="language-json">{
+    "<span class="hljs-attribute">asteroids</span>": <span class="hljs-value">[
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">160</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">578</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">722</span></span>,
+            "<span class="hljs-attribute">dx</span>": <span class="hljs-value">-<span class="hljs-number">3</span></span>,
+            "<span class="hljs-attribute">dy</span>": <span class="hljs-value">-<span class="hljs-number">4</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">160</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">333</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">265</span></span>,
+            "<span class="hljs-attribute">dx</span>": <span class="hljs-value"><span class="hljs-number">11</span></span>,
+            "<span class="hljs-attribute">dy</span>": <span class="hljs-value">-<span class="hljs-number">1</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">160</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">231</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">43</span></span>,
+            "<span class="hljs-attribute">dx</span>": <span class="hljs-value">-<span class="hljs-number">8</span></span>,
+            "<span class="hljs-attribute">dy</span>": <span class="hljs-value">-<span class="hljs-number">13</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">200</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">462</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">820</span></span>,
+            "<span class="hljs-attribute">dx</span>": <span class="hljs-value">-<span class="hljs-number">9</span></span>,
+            "<span class="hljs-attribute">dy</span>": <span class="hljs-value"><span class="hljs-number">1</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">170</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">167</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">886</span></span>,
+            "<span class="hljs-attribute">dx</span>": <span class="hljs-value">-<span class="hljs-number">4</span></span>,
+            "<span class="hljs-attribute">dy</span>": <span class="hljs-value">-<span class="hljs-number">4</span>
+        </span>}
+    ]</span>,
+    "<span class="hljs-attribute">target_positions</span>": <span class="hljs-value">[
+        [
+            <span class="hljs-number">1051</span>,
+            <span class="hljs-number">65</span>
+        ],
+        [
+            <span class="hljs-number">593</span>,
+            <span class="hljs-number">722</span>
+        ],
+        [
+            <span class="hljs-number">184</span>,
+            <span class="hljs-number">417</span>
+        ],
+        [
+            <span class="hljs-number">592</span>,
+            <span class="hljs-number">64</span>
+        ],
+        [
+            <span class="hljs-number">1154</span>,
+            <span class="hljs-number">58</span>
+        ],
+        [
+            <span class="hljs-number">473</span>,
+            <span class="hljs-number">561</span>
+        ],
+        [
+            <span class="hljs-number">685</span>,
+            <span class="hljs-number">82</span>
+        ],
+        [
+            <span class="hljs-number">1014</span>,
+            <span class="hljs-number">249</span>
+        ],
+        [
+            <span class="hljs-number">787</span>,
+            <span class="hljs-number">34</span>
+        ],
+        [
+            <span class="hljs-number">351</span>,
+            <span class="hljs-number">286</span>
+        ],
+        [
+            <span class="hljs-number">56</span>,
+            <span class="hljs-number">386</span>
+        ],
+        [
+            <span class="hljs-number">554</span>,
+            <span class="hljs-number">589</span>
+        ]
+    ]</span>,
+    "<span class="hljs-attribute">powerup_list</span>": <span class="hljs-value">[
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">32</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">668</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"shield"</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">838</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">0.5</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"none"</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">32</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">747</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"shield"</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">926</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">0.5</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"none"</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">32</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">479</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"shield"</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">502</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">0.5</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"none"</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">32</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">72</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"shield"</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">236</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">0.5</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"none"</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">32</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">132</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"shield"</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">96</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">0.5</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"none"</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">32</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">691</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"shield"</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">374</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">0.5</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"none"</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">32</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">29</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"shield"</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">56</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">0.5</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"none"</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">32</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">704</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"shield"</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">391</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">0.5</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"none"</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">32</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">37</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"shield"</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">427</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">0.5</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"none"</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">diameter</span>": <span class="hljs-value"><span class="hljs-number">32</span></span>,
+            "<span class="hljs-attribute">top</span>": <span class="hljs-value"><span class="hljs-number">104</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"shield"</span></span>,
+            "<span class="hljs-attribute">left</span>": <span class="hljs-value"><span class="hljs-number">394</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">duration</span>": <span class="hljs-value"><span class="hljs-number">0.5</span></span>,
+            "<span class="hljs-attribute">type</span>": <span class="hljs-value"><span class="hljs-string">"none"</span>
+        </span>}
+    ]
+</span>}
+</code></pre>
