@@ -19,6 +19,7 @@ class VirtualGameSprite(pygame.sprite.Sprite):
 
 #classes for our game objects
 class Cursor(VirtualGameSprite):
+    """The Player's ship is moved around using the mouse cursor"""
     def __init__(self):
         VirtualGameSprite.__init__(self) #call Sprite initializer
         # find screen diameter
@@ -31,7 +32,7 @@ class Cursor(VirtualGameSprite):
             convert_alpha=True)
 
     def update(self, millis):
-        "move the cursor based on the mouse position"
+        """Move the cursor based on the mouse position"""
         pos = pygame.mouse.get_pos()
 
         # if the cursor is outside of the game area, move it back
@@ -51,6 +52,7 @@ class Cursor(VirtualGameSprite):
 
 
 class Target(VirtualGameSprite):
+    """Targets (Crystals) don't move, but do play a sound when collected"""
     def __init__(self, diameter=32, left=20, top=20):
         VirtualGameSprite.__init__(self) #call Sprite initializer
         self.gamediameter = diameter
@@ -63,14 +65,15 @@ class Target(VirtualGameSprite):
         self.pickup_sound = load_sound('ring_inventory.wav')
 
     def pickedup(self):
+        """Play pick up sound"""
         self.pickup_sound.play()
-        pass
 
     def update(self, millis):
         # hit test done in AsteroidImpactGameplayScreen
         pass
 
 class Asteroid(VirtualGameSprite):
+    """Asteroids move in straight lines, bouncing off the edges of the game play area"""
     def __init__(self, diameter=200, dx=4, dy=10, left=20, top=20, area=None):
         VirtualGameSprite.__init__(self) #call Sprite intializer
         self.gamediameter = diameter
@@ -93,6 +96,7 @@ class Asteroid(VirtualGameSprite):
         self.dy = dy
 
     def update(self, millis):
+        """Update the position and direction of the Asteroid to move, and bounce"""
         # bounce by setting sign of x or y speed if off of corresponding side of screen
         if self.gamerect.left < self.GAME_PLAY_AREA.left:
             self.dx = abs(self.dx)
@@ -110,6 +114,7 @@ class Asteroid(VirtualGameSprite):
         self.update_rect()
 
 class BasePowerup(VirtualGameSprite):
+    """Base class for power-ups so they share common expiration behavior"""
     def __init__(self, diameter=16, left=50, top=50, maxduration=5.0):
         VirtualGameSprite.__init__(self) #call Sprite initializer
         self.gamediameter = diameter
@@ -124,6 +129,7 @@ class BasePowerup(VirtualGameSprite):
         self.used = False
 
     def update(self, millis):
+        """Deactivate power-up if duration has expired"""
         if self.active:
             self.duration += millis / 1000.
 
@@ -132,12 +138,14 @@ class BasePowerup(VirtualGameSprite):
                 self.deactivate()
 
     def activate(self, *args):
+        """Activate power-up because it was picked up"""
         self.oldgamerect = self.gamerect.copy()
         self.active = True
         self.duration = 0
         self.used = False
 
     def deactivate(self, *args):
+        """Deactivate power-up"""
         self.active = False
         self.gamerect = self.oldgamerect
         self.update_rect()
@@ -145,6 +153,7 @@ class BasePowerup(VirtualGameSprite):
         self.kill()
 
 class SlowPowerup(BasePowerup):
+    """While active, the SlowPowerup slows the asteroids to a crawl"""
     def __init__(self, diameter=32, left=100, top=100):
         BasePowerup.__init__(self, diameter=diameter, left=left, top=top, maxduration=5.0)
         self.type = 'slow'
@@ -163,6 +172,7 @@ class SlowPowerup(BasePowerup):
 
 
     def update(self, millis):
+        """ Play effect end sound if due"""
         BasePowerup.update(self, millis)
 
         if self.active:
@@ -173,6 +183,7 @@ class SlowPowerup(BasePowerup):
                 self.sound_end.play()
 
     def activate(self, cursor, asteroids, *args):
+        """Play start sound. Slow asteroids to a crawl"""
         BasePowerup.activate(self, *args)
 
         # adjust speed of asteroids
@@ -194,6 +205,7 @@ class SlowPowerup(BasePowerup):
         self.sound_end_started = False
 
     def deactivate(self, *args):
+        """Restore normal speed of asteroids"""
         BasePowerup.deactivate(self, *args)
 
         # restore speed of asteroids
@@ -204,6 +216,10 @@ class SlowPowerup(BasePowerup):
             asteroid.dy = math.copysign(asteroid.originaldy, asteroid.dy)
 
 class ShieldPowerup(BasePowerup):
+    """
+    While active, the ShieldPowerup prevents the player from dying due to
+    collisions with asteroids.
+    """
     def __init__(self, diameter=32, left=80, top=80):
         BasePowerup.__init__(self, diameter=diameter, left=left, top=top, maxduration=5.0)
         self.type = 'shield'
@@ -223,6 +239,7 @@ class ShieldPowerup(BasePowerup):
         self.sound_end_started = False
 
     def activate(self, cursor, asteroids, *args):
+        """Play activation sound"""
         BasePowerup.activate(self, *args)
 
         self.cursor = cursor
@@ -232,6 +249,7 @@ class ShieldPowerup(BasePowerup):
         self.sound_end_started = False
 
     def update(self, millis):
+        """Follow cursor. Play effect end sound if due"""
         BasePowerup.update(self, millis)
         if self.active:
             # follow on top of cursor:
@@ -264,4 +282,4 @@ class NonePowerup(BasePowerup):
         self.type = 'none'
         self.image = None
         self.update_rect()
-        print 'nonepowerup rect', self.gamerect
+        #print 'nonepowerup rect', self.gamerect

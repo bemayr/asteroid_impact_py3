@@ -40,6 +40,12 @@ class TextSprite(object):
     keeping text in position when text changes.
     """
     def __init__(self, font, text, color, **kwargs):
+        """
+        Create new TextSprite()
+        
+        Keyword arguments are transformed from game space to screen space and used to specify
+        position of rasterized text.
+        """
         self.font = font
         self.color = color
         self.text = None
@@ -56,18 +62,20 @@ class TextSprite(object):
         self.set_text(text)
 
     def set_text(self, text):
+        """Set and render new text"""
         if text != self.text:
             self.text = text
             self.textsurf = self.font.render(self.text, 1, self.color)
             self.textrect = self.textsurf.get_rect(**self.textsurf_get_rect_args)
 
     def draw(self, screen):
+        """Draw text on screen"""
         screen.blit(self.textsurf, self.textrect)
 
 class BlackScreen(GameScreen):
     """
     Black screen. Shown to the player while other things are happening in other parts of
-    the research
+    the research. The player can't interact with the black sceen.
     """
     def __init__(self, screen, gamescreenstack):
         GameScreen.__init__(self, screen, gamescreenstack)
@@ -92,6 +100,9 @@ class BlackScreen(GameScreen):
         self.screen.blit(self.background, (0, 0))
 
 class AsteroidImpactInstructionsScreen(GameScreen):
+    """
+    Instructions Screen. Displays the game objects (ship, crystal, etc) and rules to the player.
+    """
     def __init__(self, screen, gamescreenstack, click_to_continue=True):
         GameScreen.__init__(self, screen, gamescreenstack)
         self.click_to_continue = click_to_continue
@@ -228,6 +239,12 @@ class AsteroidImpactInstructionsScreen(GameScreen):
             asteroid.update(millis)
 
 class LevelCompletedOverlayScreen(GameScreen):
+    """
+    Show a "Level Complete" message on top of the gameplay screen, pausing the
+    gameplay while this screen is visible.
+    
+    This screen automatically ends after a delay.
+    """
     def __init__(self, screen, gamescreenstack):
         GameScreen.__init__(self, screen, gamescreenstack)
         self.name = 'level_complete'
@@ -243,6 +260,7 @@ class LevelCompletedOverlayScreen(GameScreen):
         self.screen.blit(self.text, self.textpos)
 
     def close(self):
+        """Close this screen by removing it from the screen stack"""
         if (len(self.screenstack) > 1
                 and isinstance(self.screenstack[-2], AsteroidImpactGameplayScreen)):
             # advance to next level
@@ -264,6 +282,12 @@ class LevelCompletedOverlayScreen(GameScreen):
                 pass
 
 class GameOverOverlayScreen(GameScreen):
+    """
+    Show a "Game Over" message on top of the gameplay screen, pausing the
+    gameplay while this screen is visible.
+    
+    This screen automatically ends after a delay.
+    """
     def __init__(self, screen, gamescreenstack):
         GameScreen.__init__(self, screen, gamescreenstack)
         self.name = 'game_over'
@@ -280,6 +304,7 @@ class GameOverOverlayScreen(GameScreen):
         pass
 
     def close(self):
+        """Close this screen by removing it from the screen stack"""
         if (len(self.screenstack) > 1
                 and isinstance(self.screenstack[-2], AsteroidImpactGameplayScreen)):
             # reload same level
@@ -302,6 +327,11 @@ class GameOverOverlayScreen(GameScreen):
 
 
 def circularspritesoverlap(a, b):
+    """
+    Returns true if two circular game sprites overlap.
+    
+    The sprite overlap is checked using their ``gamerect`` to find the sprite position and diameter.
+    """
     x1 = a.gamerect.centerx
     y1 = a.gamerect.centery
     d1 = a.gamerect.width
@@ -312,6 +342,9 @@ def circularspritesoverlap(a, b):
     return ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1)) < (.25*(d1 + d2)*(d1 + d2))
 
 def make_powerup(powerup_dict):
+    """
+    returns a new powerup of the type specified in the level JSON by checking the ``"type"`` key in powerup_dict.
+    """
     # copy so that removing 'type' doesn't change original
     powerup_dict = dict(powerup_dict)
     powerup_type = powerup_dict.pop('type')
@@ -324,6 +357,9 @@ def make_powerup(powerup_dict):
     print 'ERROR: Unknown type of powerup in level: ', powerup_type
 
 class AsteroidImpactGameplayScreen(GameScreen):
+    """
+    Gameplay logic for the Asteroid Impact game.
+    """
     def __init__(self, screen, screenstack, levellist):
         GameScreen.__init__(self, screen, screenstack)
         self.name = 'gameplay'
@@ -383,6 +419,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
         self.first_update = True
 
     def setup_level(self):
+        """Setup for the current level"""
         leveldetails = self.level_list[self.level_index]
         self.level_millis = -2000 # for the 'get ready' and level countdown
 
@@ -407,6 +444,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
         self.level_attempt += 1
 
     def advance_level(self):
+        """Advance the current level to the next in the list"""
         self.level_index = (self.level_index + 1) % len(self.level_list)
         self.level_attempt = -1
         self.setup_level()
@@ -418,6 +456,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
         self.status_time_textsprite.set_text('%2.2f'%(self.level_millis / 1000.))
 
     def update_notice_text(self, level_millis, oldlevel_millis):
+        """Update level countdown text"""
         #                   Get Ready -
         # -1000... -0000    Set
         # -0000 ... +500    Go
@@ -432,6 +471,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
             self.notice_textsprite.set_text('')
 
     def update(self, millis, logrowdetails, events):
+        """Run per-frame game logic"""
         oldmlevelillis = self.level_millis
         self.level_millis += millis
 
@@ -536,6 +576,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
 
 
     def draw(self):
+        """draw game to ``self.screen``"""
         self.screen.blit(self.blackbackground, (0, 0))
 
         self.mostsprites.draw(self.screen)

@@ -172,6 +172,7 @@ class GameModeManager(object):
         self.init_step()
 
     def init_step(self):
+        "setup for next game mode step"
         self.step_millis = 0
         step = self.gamesteps[self.stepindex]
         self.step_max_millis = None
@@ -196,6 +197,7 @@ class GameModeManager(object):
 
 
     def load_levels(self, dir, levellistfile):
+        "load levels from list of levels in JSON file"
         # load level list
         with open(path.join(dir, levellistfile)) as f:
             levellist = json.load(f)
@@ -211,6 +213,7 @@ class GameModeManager(object):
         return levels
 
     def gameloop(self):
+        "run the game frame/tick loop"
         clock = pygame.time.Clock()
 
         if pygame.mixer:
@@ -331,6 +334,7 @@ class GameModeManager(object):
             pygame.display.flip()
 
 def main():
+    "parse console arguments and start game"
     args = parser.parse_args()
 
     game_step_manager = GameModeManager(args)

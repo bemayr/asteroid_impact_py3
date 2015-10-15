@@ -4,7 +4,7 @@ import os
 from sets import Set
 
 def csv_escape(value):
-    """Return s escaped and quoted as needed to be in a comma-separated CSV"""
+    """return escaped and quoted as needed to be in a comma-separated CSV"""
     if ',' in value:
         # quote value
         return '"%s"'%value.replace('"', '""')

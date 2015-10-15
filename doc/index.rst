@@ -14,7 +14,7 @@ Contents:
    codeintro
    leveljson
    scriptjson
-   makelevel
+   makelevelpy
 
    game
    logger

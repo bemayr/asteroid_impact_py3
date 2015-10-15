@@ -13,6 +13,11 @@ effects_volume = 1.0
 image_cache = {}
 
 def resource_path(filename):
+    """
+    Return transformed resource path.
+    
+    For example, a standalone single-exe build would need to move the 'data' folder references somewhere else.
+    """
     # The 'data' directory isn't in the same spot when pyinstaller creates a
     # standalone build packed exe:
     # (via http://irwinkwan.com/tag/pyinstaller/ )
@@ -43,6 +48,12 @@ def load_font(name, size):
     return NoneFont(fullname, size)
 
 def load_image(name, size=None, convert_alpha=False, colorkey=None):
+    """
+    Load image, scaling to desired size if specified.
+    
+    Results are cached to make future loading of the same resource instant, but
+    this means you shouldn't draw on returned surfaces.
+    """
     # Look up image in cache
     cache_key = (name, size, convert_alpha, colorkey)
     if image_cache.has_key(cache_key):
@@ -76,6 +87,9 @@ def load_image(name, size=None, convert_alpha=False, colorkey=None):
     return image
 
 def load_sound(name):
+    """
+    Load audio clip from file name.
+    """
     class NoneSound:
         def __init(self):
             self.volume = 1.0
@@ -96,6 +110,9 @@ def load_sound(name):
     return sound
 
 def load_music(name):
+    """
+    Load music file from file name.
+    """
     if not pygame.mixer or not pygame.mixer.get_init():
         return
     fullname = resource_path(os.path.join('data', name))
