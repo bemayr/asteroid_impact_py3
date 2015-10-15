@@ -123,6 +123,11 @@ Unlock the cursor from the game
 
 While the game is running, you can unlock the cursor from the game or lock it again by pressing alt+c or option+c.
 
+Advance to the next step in the sequence of screens.
+--------------------------
+
+While the game is running, you can advance to the next step immedately by pressing ctrl+n.
+
 Set the volume
 --------------------------
 

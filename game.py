@@ -288,12 +288,18 @@ class GameModeManager(object):
                         new_grab = not current_grab
                         pygame.event.set_grab(new_grab)
                         pygame.mouse.set_visible(not new_grab)
+                    elif (event.type == KEYDOWN
+                          and event.key == K_n
+                          and (event.mod & pygame.KMOD_CTRL)):
+                        print 'CTRL+n pressed. Advancing to next step'
+                        self.gamescreenstack = []
                     else:
                         pass
                         #print event
 
                 try:
-                    self.gamescreenstack[-1].update(millis, logrowdetails, events)
+                    if len(self.gamescreenstack) > 0:
+                        self.gamescreenstack[-1].update(millis, logrowdetails, events)
                 except QuitGame as e:
                     print e
                     return
