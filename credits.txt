@@ -7,13 +7,22 @@ through space.ogg | http://opengameart.org/content/through-space
 Licensed CC-BY 3.0
 DeathFlash.wav from YoFrankie!
 
-by artisticdude 
+by artisticdude
 Licensed CC-BY 3.0, CC-BY-SA 3.0 
 ring_inventory.wav from http://opengameart.org/content/inventory-sound-effects 
 
-Nick Winters
+Nick Winters, 2015
 Sound effects, Licensed CC-BY 3.0
 slow start.wav
 slow end.wav
 shield start.wav
 shield end.wav
+Graphics, Licensed CC-BY 3.0
+asteroid.png (uses raw_data/Moon_Farside_LRO.jpeg which is public domain from NASA)
+background.jpg/background4x3.jpg
+gamesprites.svg
+clock.png (exported from gamesprites.svg)
+crystal.png (exported from gamesprites.svg)
+cursor.png (exported from gamesprites.svg)
+shield.png (exported from gamesprites.svg)
+
