@@ -1,6 +1,6 @@
 """
 Standard levels for Asteroid Impact
-This script generates the standard levels and exports them as json files, including a level list.
+This script generates the standard levels and exports them as JSON files, including a level list.
 """
 import json
 from makelevel import make_level

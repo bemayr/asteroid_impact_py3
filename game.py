@@ -1,6 +1,8 @@
+# 'Asteroid Impact'
+# Copyright (c) 2015 Nick Winters
+
 """
-'Asteroid Impact'
-Copyright (c) 2015 Nick Winters
+Game loop and screen management for Asteroid Impact game.
 """
 
 # to make python3 porting easier:
@@ -78,10 +80,10 @@ class GameModeManager(object):
 
      * Action: Either Instructions, Game, or Black Screen
      * Levels: For the game, the list of level files to play. The player will progress (or
-     not) through them in order, and after completing the last level will start again at
-     the beginning. Dying will restart the current level.
+       not) through them in order, and after completing the last level will start again at
+       the beginning. Dying will restart the current level.
      * Duration: After this many seconds move to the next step, regardless of what the
-     player is doing now.
+       player is doing now.
     """
     def __init__(self, args):
         self.args = args
