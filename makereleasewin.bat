@@ -11,6 +11,13 @@ del "dist\AsteroidImpact Source.zip"
 7z a "dist\AsteroidImpact Source.zip" *.py *.json *.txt data\ doc\ levels\
 if errorlevel 1 goto somethingbad
 
+@REM build documentation zip
+del "dist\AsteroidImpact Documentation HTML.zip"
+cd doc\_build
+7z a "..\..\dist\AsteroidImpact Documentation HTML.zip" html\
+if errorlevel 1 goto somethingbad
+cd ..\..
+
 @REM build standalone
 pyinstaller.exe game-win.spec --noconfirm
 if errorlevel 1 goto somethingbad

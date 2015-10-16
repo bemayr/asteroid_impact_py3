@@ -26,6 +26,15 @@ Game 'Script'
 
 To allow the researchers to combine this game with other instructions, the game can be run with a script specified which specifies a series of steps. Each step either shows instructions, gameplay, or a black screen, and each step has a specified duration in seconds. The gameplay step can specify a level list to allow the researcher to set up a sequence where easy levels are played before and after hard ones.
 
+Operator Keys
+=======================
+
+There are semi-obscure keystrokes that test operators can use to make testing levels or managing the game easier. These are listed below
+
+ * Quit the game: Press alt+f4 or command+q
+ * Advance to the next step (from instructions to levels, or further on in your sequence). Press ctrl+n
+ * Lock or unlock the cursor from the window. Press alt+c or option+c
+
 Command-Line Options
 =======================
 
