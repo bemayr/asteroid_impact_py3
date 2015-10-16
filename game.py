@@ -62,6 +62,9 @@ parser.add_argument('--script-json', type=str, default=None,
 parser.add_argument('--levels-json', type=str, default=None,
                     help=('levellist.json file listing all levels to complete. Ignored ' +
                           'when specifying --script-json'))
+parser.add_argument('--single-level-json', type=str, default=None,
+                    help=('level.json file to test a single level. Ignored when ' +
+                          'specifying --script-json'))
 parser.add_argument('--subject-number', type=str, default='',
                     help='Subject number to include in log.')
 parser.add_argument('--subject-run', type=str, default='',
@@ -92,7 +95,7 @@ class GameModeManager(object):
             with open(self.args.script_json) as f:
                 self.gamesteps = json.load(f)
 
-            if self.args.levels_json != None:
+            if self.args.levels_json != None or self.args.single_level_json != None:
                 raise ('Error: When specifying script json you must specify levels in ' +
                        'script, not command-line argument.')
         else:
@@ -100,8 +103,12 @@ class GameModeManager(object):
             if self.args.levels_json != None:
                 if not path.exists(self.args.levels_json):
                     raise 'Error: Could not find file at "%s"'%self.args.levels_json
+                elif self.args.single_level_json != None:
+                    raise 'Error: Invalid arguments. Do not specify both --levels-json and --single-level-json'
                 else:
                     levelsjson = self.args.levels_json
+            elif self.args.single_level_json != None:
+                levelsjson = [self.args.single_level_json]
 
             # use these steps when the steps aren't specified on the console:
             self.gamesteps = [
@@ -136,9 +143,7 @@ class GameModeManager(object):
                     raise ('ERROR: "game" action must have levels attribute pointing to ' +
                            'levels list json file.')
 
-                levelsabspath = os.path.abspath(step['levels'])
-                levelsdir, levelsfilename = os.path.split(levelsabspath)
-                step['levellist'] = self.load_levels(levelsdir, levelsfilename)
+                step['levellist'] = self.load_levels(step)
 
         resources.music_volume = self.args.music_volume
         resources.effects_volume = self.args.effects_volume
@@ -196,15 +201,22 @@ class GameModeManager(object):
             raise ValueError('Unknown step action "%s"'%step['action'])
 
 
-    def load_levels(self, dir, levellistfile):
-        "load levels from list of levels in JSON file"
-        # load level list
-        with open(path.join(dir, levellistfile)) as f:
-            levellist = json.load(f)
+    def load_levels(self, step):
+        if isinstance(step['levels'], list):
+            levellist = step['levels']
+            dir = ''
+        else:
+            levelsabspath = os.path.abspath(step['levels'])
+            dir, levellistfile = os.path.split(levelsabspath)
+
+            "load levels from list of levels in JSON file"
+            # load level list
+            with open(path.join(dir, levellistfile)) as f:
+                levellist = json.load(f)['levels']
 
         # load all levels in list
         levels = []
-        for levelfile in levellist['levels']:
+        for levelfile in levellist:
             with open(path.join(dir, levelfile)) as f:
                 level = json.load(f)
                 level['level_name'] = levelfile
