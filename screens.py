@@ -3,7 +3,7 @@ Game screens for AsteroidImpact
 """
 
 from sprites import *
-from resources import load_font, load_image, music_volume
+from resources import load_font, load_image, mute_music, unmute_music
 from pygame.locals import *
 import virtualdisplay
 
@@ -93,7 +93,7 @@ class BlackScreen(GameScreen):
         if self.first_update:
             self.first_update = False
             # don't play music during the black screen
-            pygame.mixer.music.set_volume(0.0)
+            mute_music()
 
     def draw(self):
         # draw background
@@ -219,7 +219,7 @@ class AsteroidImpactInstructionsScreen(GameScreen):
         if self.first_update:
             self.first_update = False
             # play music during the instructions at specified volume:
-            pygame.mixer.music.set_volume(music_volume)
+            unmute_music()
 
         for event in events:
             if event.type == MOUSEBUTTONDOWN:
@@ -478,7 +478,7 @@ class AsteroidImpactGameplayScreen(GameScreen):
         if self.first_update:
             self.first_update = False
             # play music during the instructions at specified volume:
-            pygame.mixer.music.set_volume(music_volume)
+            unmute_music()
 
         levelstate = 'countdown' if self.level_millis < 0 else 'playing'
 

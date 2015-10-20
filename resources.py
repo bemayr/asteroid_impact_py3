@@ -121,3 +121,11 @@ def load_music(name):
     except pygame.error, message:
         print 'Cannot load music:', fullname
         raise SystemExit, message
+
+def mute_music():
+    """Mute Music by setting volume to zero temporarily."""
+    pygame.mixer.music.set_volume(0.0)
+
+def unmute_music():
+    """Restore music volume to configured music volume."""
+    pygame.mixer.music.set_volume(music_volume)
