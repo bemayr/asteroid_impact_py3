@@ -55,6 +55,8 @@ parser.add_argument('--window-y', type=int, default=None,
 parser.add_argument('--display-mode', choices=['windowed', 'fullscreen'],
                     default='windowed',
                     help='Whether to run windowed or fullscreen.')
+parser.add_argument('--list-modes', default=False, const=True, nargs='?',
+                    help='List available full screen display modes and exit.')
 parser.add_argument('--script-json', type=str, default=None,
                     help=('script.json file listing all steps such as instructions, ' +
                           'gameplay (with levels) and black screens. See ' +
@@ -90,6 +92,7 @@ class GameModeManager(object):
     """
     def __init__(self, args):
         self.args = args
+        self.skipgame = False
 
         if self.args.script_json != None:
             with open(self.args.script_json) as f:
@@ -164,6 +167,15 @@ class GameModeManager(object):
         virtualdisplay.set_screensize(screensize)
 
         pygame.init()
+
+        if self.args.list_modes:
+            print 'Available full screen display modes:'
+            for mode in pygame.display.list_modes(0, pygame.DOUBLEBUF | pygame.FULLSCREEN):
+                print '--display-mode fullscreen --display-width', mode[0], '--display-height', mode[1]
+            # exit
+            self.skipgame = True
+            return
+
         self.screen = pygame.display.set_mode(screensize, displayflags)
         pygame.display.set_caption('Asteroid Impact')
         pygame.mouse.set_visible(0)
@@ -226,6 +238,11 @@ class GameModeManager(object):
 
     def gameloop(self):
         "run the game frame/tick loop"
+
+        if self.skipgame:
+            # exit
+            return
+
         clock = pygame.time.Clock()
 
         if pygame.mixer:
