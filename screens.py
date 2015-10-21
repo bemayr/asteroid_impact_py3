@@ -162,8 +162,7 @@ class UserTextScreen(GameScreen):
         # wrap 'text' to fit in virtualdisplay.screen_width
         lines = text.split('\n')
 
-        y = 0
-
+        wrapped_lines = []
         for line in lines:
             line = line.strip()
             wrappedline = True
@@ -184,15 +183,21 @@ class UserTextScreen(GameScreen):
                     lineremainder = line[breakpointlength:]
                     line = line[:breakpointlength]
 
-                self.textsprites.append(
-                    TextSprite(self.font, line, self.text_color,
-                               x=0,
-                               y=y))
-                y += self.line_height
+                wrapped_lines.append(line)
 
                 if wrappedline:
                     # trim starting whitespace if any after line break
                     line = lineremainder.lstrip()
+
+        # add text blocks, but vertically center them all on screen
+        y = (virtualdisplay.GAME_AREA.height - (len(wrapped_lines) * self.line_height)) / 2
+        for line in wrapped_lines:
+            self.textsprites.append(
+                TextSprite(self.font, line, self.text_color,
+                           x=0,
+                           y=y))
+            y += self.line_height
+
 
     def draw(self):
         # draw background
