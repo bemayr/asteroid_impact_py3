@@ -16,14 +16,14 @@ Contents:
    scriptjson
    makelevelpy
 
-   game
-   logger
-   makelevel
-   makestandardlevels
-   resources
-   screens
-   sprites
-   virtualdisplay
+   ref/game
+   ref/logger
+   ref/makelevel
+   ref/makestandardlevels
+   ref/resources
+   ref/screens
+   ref/sprites
+   ref/virtualdisplay
 
    
 Indices and tables
