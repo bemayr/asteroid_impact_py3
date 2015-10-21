@@ -199,7 +199,7 @@ Create a new script JSON file named samplerepeatinglevelscript.json and put it n
 
 run ``game.py`` with these arguments: ``--script-json samplerepeatinglevelscript.json``
 
-The script json file is described in more detail in ``docs/scriptjson.html``
+The script json file is described in more detail in :doc:`scriptjson <scriptjson>`
 
 Create new levels
 --------------------------
@@ -208,7 +208,7 @@ Use ``makelevel.py`` to create new levels. For example, with the arguments below
 
 ``--target-count 10 --asteroid-count 4 --asteroid-sizes small --asteroid-speeds medium --powerup-count 10 --powerup-types all --powerup-initial-delay 2.0 --powerup-delay 3.0 --file levels/mynewlevel.json``
 
-See docs/makelevel.html for more details on the options for ``makelevel.py``
+See :doc:`makelevel.py <makelevelpy>` for more details on the options for ``makelevel.py``
 
 Change the artwork
 --------------------------
