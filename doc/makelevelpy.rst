@@ -16,6 +16,9 @@ See :ref:`makelevel-creation-process` below for how levels are created.
 command-line options
 ==========================
 
+The order of the command-line options does not matter.
+
+Values (where applicable) come immediately after their command-line option. For example ``python makelevel.py --file samplefile.json``.
 
 +---------------------------------------------------+------------------------------------+----------------+---------------------------------------------------------------------------+
 | Option                                            | Values                             | Default        | Description                                                               |
