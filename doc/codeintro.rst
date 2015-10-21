@@ -137,7 +137,7 @@ Unlock the cursor from the game
 While the game is running, you can unlock the cursor from the game or lock it again by pressing alt+c or option+c.
 
 Advance to the next step in the sequence of screens.
---------------------------
+-----------------------------------------------------
 
 While the game is running, you can advance to the next step immedately by pressing ctrl+n.
 
@@ -237,7 +237,7 @@ Log CSV Columns
  * ``targets_collected`` Number of targets collected in this level.
  * ``target_x``, ``target_y`` Center position of current target in game coordinates.
  * ``active_powerup`` The currently active powerup. ``none``, ``slow`` or ``shield``
- * ``powerup_x``, ``powerup_y``, ``powerup_diameter``, ``powerup_type`` Are for the on-screen powerup. These shouldn``t be trusted while a powerup is active because active power-ups move around. A shield follows on top of the cursor and the slow powerup moves offscreen.
+ * ``powerup_x``, ``powerup_y``, ``powerup_diameter``, ``powerup_type`` Are for the on-screen powerup. These shouldn't be trusted while a powerup is active because active power-ups move around. A shield follows on top of the cursor and the slow powerup moves offscreen.
  * ``cursor_x``, ``cursor_y`` X and Y position of the center of the ship that is controlled by the player.
 
 Code Introduction

@@ -58,6 +58,6 @@ The ``instructions`` step displays instructions on how to play the game and each
 A null ``duration`` for the instructions step will show a "Click to continue" message and allow the player to advance to the next step by clicking with their mouse. If a duration is specified the player will have to wait for that time to complete to move on to the next step.
 
 ``blackscreen``
---------------
+----------------
 
 The ``blackscreen`` step will display a black screen with no available interaction to the player. The ``duration`` must be specified.
