@@ -13,6 +13,7 @@ from sprites import *
 from resources import load_font, load_image, mute_music, unmute_music
 from pygame.locals import *
 import virtualdisplay
+import string
 
 # screens.py
 class QuitGame(Exception):
@@ -105,6 +106,119 @@ class BlackScreen(GameScreen):
     def draw(self):
         # draw background
         self.screen.blit(self.background, (0, 0))
+
+def font_find_fitting_string_length(font, line, lineWidth):
+    """return the length (in characters) of the string that fits within lineWidth"""
+    for i in xrange(len(line), -1, -1):
+        if font.size(line[0:i])[0] <= lineWidth:
+            return i
+    return len(line)
+
+
+def valid_breakpoint_character(c):
+    """return true when c is a valid word-wrapping breakpoint character"""
+    # whitespace:
+    return c in string.whitespace
+
+
+class UserTextScreen(GameScreen):
+    """
+    Text Screen. Displays text specified in step.
+    """
+    def __init__(self, screen, gamescreenstack, click_to_continue=True, text="[No text value was specified]"):
+        GameScreen.__init__(self, screen, gamescreenstack)
+        self.click_to_continue = click_to_continue
+        self.name = 'textdisplay'
+        self.opaque = True
+        self.blackbackground = pygame.Surface(self.screen.get_size())
+        self.blackbackground = self.blackbackground.convert()
+        self.blackbackground.fill((0, 0, 0))
+
+        self.textsprites = []
+        self.sprites = pygame.sprite.Group()
+
+        big_font_size = virtualdisplay.screenrect_from_gamerect(
+            pygame.Rect(0, 0, 72, 72)).height
+        self.font_big = load_font('freesansbold.ttf', big_font_size)
+        
+        self.line_height = 36 # game-space like font size below
+        small_font_size = virtualdisplay.screenrect_from_gamerect(
+            pygame.Rect(0, 0, 32, 32)).height
+        self.font = load_font('freesansbold.ttf', small_font_size)
+
+        self.text_color = (250, 250, 250) # white
+
+        self.init_text(text)
+
+        if self.click_to_continue:
+            self.textsprites.append(TextSprite(
+                self.font_big, "Click To Begin", self.text_color,
+                centerx=virtualdisplay.GAME_AREA.width/2,
+                bottom=virtualdisplay.GAME_AREA.height))
+
+        self.first_update = True
+        
+    def init_text(self, text):
+        # wrap 'text' to fit in virtualdisplay.screen_width
+        lines = text.split('\n')
+
+        y = 0
+
+        for line in lines:
+            line = line.strip()
+            wrappedline = True
+            while wrappedline:
+                wrappedline = False
+
+                maxlength = font_find_fitting_string_length(self.font, line, virtualdisplay.screenplayarea.width)
+                if maxlength < len(line):
+                    wrappedline = True
+                    # find text breakpoint
+                    breakpointlength = maxlength
+                    while (breakpointlength > 0 and 
+                           not valid_breakpoint_character(line[breakpointlength - 1])):
+                        breakpointlength -= 1
+                    if breakpointlength == 0:
+                        # likely a long single word or URL. Just break where it fits
+                        breakpointlength = maxlength
+                    lineremainder = line[breakpointlength:]
+                    line = line[:breakpointlength]
+
+                self.textsprites.append(
+                    TextSprite(self.font, line, self.text_color,
+                               x=0,
+                               y=y))
+                y += self.line_height
+
+                if wrappedline:
+                    # trim starting whitespace if any after line break
+                    line = lineremainder.lstrip()
+
+    def draw(self):
+        # draw background
+        self.screen.blit(self.blackbackground, (0, 0))
+        # draw all text blocks:
+        for textsprite in self.textsprites:
+            textsprite.draw(self.screen)
+
+    def update(self, millis, logrowdetails, events):
+        if self.first_update:
+            self.first_update = False
+            # don't play music:
+            mute_music()
+
+        for event in events:
+            if event.type == MOUSEBUTTONDOWN:
+                if self.click_to_continue:
+                    # position cursor at the center
+                    pygame.mouse.set_pos([
+                        virtualdisplay.screenarea.centerx,
+                        virtualdisplay.screenarea.centery])
+                    # end the instructions screen:
+                    self.screenstack.pop()
+                    # game.py will switch to gameplay
+            elif event.type is MOUSEBUTTONUP:
+                pass
 
 class AsteroidImpactInstructionsScreen(GameScreen):
     """

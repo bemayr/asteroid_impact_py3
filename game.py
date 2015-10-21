@@ -34,9 +34,10 @@ if not pygame.mixer:
 
 from screens import (
     AsteroidImpactInstructionsScreen,
-     AsteroidImpactGameplayScreen,
-     BlackScreen,
-     QuitGame)
+    UserTextScreen,
+    AsteroidImpactGameplayScreen,
+    BlackScreen,
+    QuitGame)
 import resources
 from sprites import Target
 import virtualdisplay
@@ -135,8 +136,12 @@ class GameModeManager(object):
                 step['duration'] = None
 
             if step['action'] == 'instructions':
-                # nothing extra validate
+                # nothing extra to validate
                 pass
+            elif step['action'] == 'text':
+                # 'text' is required
+                if not step.has_key('text'):
+                    raise ('ERROR: "text" step must have "text" attribute with string value.')
             elif step['action'] == 'blackscreen':
                 # duration is required
                 try:
@@ -207,6 +212,14 @@ class GameModeManager(object):
                     self.screen,
                     self.gamescreenstack,
                     click_to_continue=click_to_continue))
+        elif step['action'] == 'text':
+            click_to_continue = step['duration'] == None
+            self.gamescreenstack.append(
+                UserTextScreen(
+                    self.screen,
+                    self.gamescreenstack,
+                    click_to_continue=click_to_continue,
+                    text=step['text']))
         elif step['action'] == 'blackscreen':
             self.gamescreenstack.append(BlackScreen(self.screen, self.gamescreenstack))
         elif step['action'] == 'game':
