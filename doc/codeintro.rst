@@ -4,6 +4,15 @@ Asteroid Impact Code Introduction
 
 Asteroid Impact is a clone of `Star Reaction <http://loveisgames.com/Action/1979/Star-Reaction>`_ made for the Media Neuroscience Lab of UC Santa Barbara to allow them to run the game with randomness removed, collect additional information from the game and to reduce the chance participants deviate from the instructions by choosing the wrong level or clicking outside the game area.
 
+License
+========
+Asteroid Impact (c) by Nick Winters
+
+Asteroid Impact is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
+
+You should have received a copy of the license along with this work. If not, see `<http://creativecommons.org/licenses/by-sa/4.0/>`_. 
+
+
 Gameplay
 ==========
 
@@ -24,7 +33,7 @@ The sequence of levels can be built to have a slow progression or variation or r
 Game 'Script'
 ================
 
-To allow the researchers to combine this game with other instructions, the game can be run with a script specified which specifies a series of steps. Each step either shows instructions, gameplay, or a black screen, and each step has a specified duration in seconds. The gameplay step can specify a level list to allow the researcher to set up a sequence where easy levels are played before and after hard ones.
+To allow the researchers to combine this game with other instructions, the game can be run with a script specified which specifies a series of steps. Each step either shows the game instructions, other text instructions, gameplay, or a black screen, and each step has a specified duration in seconds. The gameplay step can specify a level list to allow the researcher to set up a sequence where easy levels are played before and after hard ones.
 
 Operator Keys
 =======================
@@ -172,12 +181,21 @@ Log details to a file
 
 Run ``game.py`` with these arguments, modifed as needed ``--log-file sample.csv --log-overwrite false``
 
-Repeat the same level over and over for 200 seconds
+Create new levels
+--------------------------
+
+Use ``makelevel.py`` to create new levels. For example, with the arguments below a new level will be saved to ``levels/mynewlevel.json`` with 10 crystals, 4 asteroids that are small, move at up to a medium speed, with a looping list of 10 power-up positions of all types that don't become available until 2 seconds into the level or 3 seconds after the previous one was used.
+
+``--target-count 10 --asteroid-count 4 --asteroid-sizes small --asteroid-speeds medium --powerup-count 10 --powerup-types all --powerup-initial-delay 2.0 --powerup-delay 3.0 --file levels/mynewlevel.json``
+
+See :doc:`makelevel.py <makelevelpy>` for more details on the options for ``makelevel.py``
+
+Repeat the same level for a specified duration
 -----------------------------------------------------
 
 When the player completes the last level in a list of levels they next play the first level in the list. To repeat the same level you can create a list of just the one level.
 
-To limit the player to playing for 200 seconds you must specify a script that limits the gameplay step to 200 seconds.
+To limit the player to playing the repeating level for some number of seconds you must specify a script that limits the gameplay step to that number of seconds seconds.
 
 Create a new level list JSON file named samplerepeatinglevel.json and put it in the levels folder. It should have the following contents: ::
 
@@ -201,18 +219,11 @@ Create a new script JSON file named samplerepeatinglevelscript.json and put it n
         }
     ]
 
+The ``"duration": 200.0`` specified in the above file limits the repeating level step to 200 seconds. Change this value to your desired duration.
+
 run ``game.py`` with these arguments: ``--script-json samplerepeatinglevelscript.json``
 
 The script json file is described in more detail in :doc:`scriptjson <scriptjson>`
-
-Create new levels
---------------------------
-
-Use ``makelevel.py`` to create new levels. For example, with the arguments below a new level will be saved to ``levels/mynewlevel.json`` with 10 crystals, 4 asteroids that are small, move at up to a medium speed, with a looping list of 10 power-up positions of all types that don't become available until 2 seconds into the level or 3 seconds after the previous one was used.
-
-``--target-count 10 --asteroid-count 4 --asteroid-sizes small --asteroid-speeds medium --powerup-count 10 --powerup-types all --powerup-initial-delay 2.0 --powerup-delay 3.0 --file levels/mynewlevel.json``
-
-See :doc:`makelevel.py <makelevelpy>` for more details on the options for ``makelevel.py``
 
 Change the artwork
 --------------------------
