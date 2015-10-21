@@ -12,12 +12,12 @@ Licensed CC-BY 3.0, CC-BY-SA 3.0
 ring_inventory.wav from http://opengameart.org/content/inventory-sound-effects 
 
 Nick Winters, 2015
-Sound effects, Licensed CC-BY 3.0
+Sound effects, Licensed CC-BY-SA 4.0 <http://creativecommons.org/licenses/by-sa/4.0/>
 slow start.wav
 slow end.wav
 shield start.wav
 shield end.wav
-Graphics, Licensed CC-BY 3.0
+Graphics, Licensed CC-BY-SA 4.0 <http://creativecommons.org/licenses/by-sa/4.0/>
 asteroid.png (uses raw_data/Moon_Farside_LRO.jpeg which is public domain from NASA)
 background.jpg/background4x3.jpg
 gamesprites.svg
