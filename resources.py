@@ -131,8 +131,12 @@ def load_music(name):
 
 def mute_music():
     """Mute Music by setting volume to zero temporarily."""
+    if not pygame.mixer or not pygame.mixer.get_init():
+        return
     pygame.mixer.music.set_volume(0.0)
 
 def unmute_music():
     """Restore music volume to configured music volume."""
+    if not pygame.mixer or not pygame.mixer.get_init():
+        return
     pygame.mixer.music.set_volume(music_volume)
