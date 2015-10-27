@@ -176,6 +176,9 @@ class GameModeManager(object):
         virtualdisplay.set_screensize(screensize)
 
         pygame.init()
+        
+        if not pygame.mixer.get_init():
+            print 'Warning, could not initialize mixer. Game will have no sound.'
 
         if self.args.list_modes:
             print 'Available full screen display modes:'
@@ -262,9 +265,9 @@ class GameModeManager(object):
 
         clock = pygame.time.Clock()
 
-        if pygame.mixer:
+        if pygame.mixer and pygame.mixer.get_init():
             resources.load_music('through space.ogg')
-            pygame.mixer.music.set_volume(resources.music_volume)
+            resources.unmute_music()
             pygame.mixer.music.play(-1)
 
         asteroidlogger = AsteroidLogger(self.args.log_filename, self.args.log_overwrite == 'true')
