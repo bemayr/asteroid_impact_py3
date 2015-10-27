@@ -162,12 +162,14 @@ Run ``game.py`` with these arguments, modified as needed: ``--effects-volume 1.0
 Run full screen
 --------------------------
 
-Run ``game.py`` with these arguments, modified as needed: ``--display-width 800 --display-height 600 --display-mode fullscreen``
+Run ``game.py`` with these arguments, modified as needed: ``--display-mode fullscreen``
 
 Set the window size
 --------------------------
 
 Run ``game.py`` with these arguments, modified as needed: ``--display-width 800 --display-height 600``
+
+The game play area will remain centered in the window you create, with black bars added to keep the aspect ratio for the game area 4:3.
 
 Set the window position
 --------------------------
