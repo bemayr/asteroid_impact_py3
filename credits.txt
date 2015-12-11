@@ -11,7 +11,8 @@ by artisticdude
 Licensed CC-BY 3.0, CC-BY-SA 3.0 
 ring_inventory.wav from http://opengameart.org/content/inventory-sound-effects 
 
-Nick Winters, 2015
+Other sounds and graphics listed below (C) Media Neuroscience Lab, Rene Weber, 2015
+Authored by Nick Winters
 Sound effects, Licensed CC-BY-SA 4.0 <http://creativecommons.org/licenses/by-sa/4.0/>
 slow start.wav
 slow end.wav

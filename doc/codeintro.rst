@@ -6,7 +6,7 @@ Asteroid Impact is a clone of `Star Reaction <http://loveisgames.com/Action/1979
 
 License
 ========
-Asteroid Impact (c) by Nick Winters
+Asteroid Impact is Copyright (c) Media Neuroscience Lab, Rene Weber
 
 Asteroid Impact is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
 
