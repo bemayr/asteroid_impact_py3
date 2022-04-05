@@ -1,0 +1,18 @@
+{
+  "steps": [
+    {
+      "action": "instructions"
+    },
+    {
+      "action": "game",
+      "levels": "levels/standardlevels.json",
+      "duration": 600.0
+    },
+    {
+      "action": "text",
+      "text": "Du hast schon einen Teil des Experiments hinter dir ;)\nJetzt gehts weiter mit dem Fragebogen.",
+      "title": "Cool, geschafft",
+      "duration": 15.0
+    }
+  ]
+}
